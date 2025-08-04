@@ -1,0 +1,45 @@
+{% extends "template.html" %}
+{% block content %}
+    <div class="row align-items-start gx-5 my-5">
+        <div class="col">
+            <h2>RVA's Chess Club</h2>
+            <p>
+                RVA Pieces, The Richmond Chess Club, a 501(c)3 nonprofit organization, exists to foster a thriving
+                environment and active community for casual and competitive chess in our city, as well as provide
+                access to stellar chess education for everyone, regardless of age or skill level.
+            </p>
+            <div class="container">
+                <a href="{% url 'schedule' %}" class="btn btn-primary">
+                    View Upcoming Events
+                </a>
+                <a href="{% url 'contact_us' %}" class="btn btn-primary">
+                    Get In Touch
+                </a>
+            </div>
+        </div>
+        <div class="col">
+            <img src="https://i0.wp.com/rvapieces.org/wp-content/uploads/2024/12/rva-pieces-phot-2.jpg?w=750&ssl=1" class="img-fluid rounded-5"  alt="Members of RVA Pieces playing at Monroe Park"/>
+        </div>
+    </div>
+
+    <hr>
+
+    <div class="row align-items-start gx-5 my-5">
+        <div class="col">
+            <img src="https://i0.wp.com/rvapieces.org/wp-content/uploads/2024/11/gwar-edited-2.jpg?w=1080&ssl=1" class="img-fluid rounded-5"  alt="Gwar" width="1024" height="1024"/>
+            <h4>Casual Games</h4>
+            <p>You can catch us for casual games on multiple days of the week. Come say hi! All are welcome regardless of age or level of experience.</p>
+        </div>
+        <div class="col">
+            <img src="https://i0.wp.com/rvapieces.org/wp-content/uploads/2024/11/publix-edited.jpg?w=1080&ssl=1" class="img-fluid rounded-5"  alt="Publix" width="1024" height="1024"/>
+            <h4>Tournaments</h4>
+            <p>Every other week, we host the next round of our official USCF rated ladder. When the weather is warm, we meet monthly to compete for bragging rights at Backyard Blitz.</p>
+        </div>
+        <div class="col">
+            <img src="https://i0.wp.com/rvapieces.org/wp-content/uploads/2024/11/library.jpg?w=1080&ssl=1" class="img-fluid rounded-5"  alt="Library" width="1024" height="1024"/>
+            <h4>Beginner Meetups</h4>
+            <p>If you’re new to chess or have recently come back to it, you can meet other beginners at our Beginners Only meetups. Starting November, we’ll be relaunching our free beginner classes.</p>
+        </div>
+    </div>
+
+{% endblock %}

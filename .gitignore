@@ -1,0 +1,8 @@
+media/
+
+# Intellij Directories
+.idea/
+/*.iml
+
+**/.env
+/Pipfile.lock
