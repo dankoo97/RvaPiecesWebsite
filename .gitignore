@@ -1,4 +1,5 @@
 media/
+secrets/
 
 # Intellij Directories
 .idea/
