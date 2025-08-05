@@ -22,9 +22,11 @@ def venmo_page():
 def discord_invite():
     return "https://discord.com/invite/4wcTB5JuPn"
 
+
 @register.simple_tag
 def email():
     return "rvapieces@gmail.com"
+
 
 @register.simple_tag
 def chessnut_page():

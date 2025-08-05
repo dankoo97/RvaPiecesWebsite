@@ -11,8 +11,8 @@ class Event(models.Model):
     long_description = RichTextField(blank=True)
     location = models.CharField(max_length=100)
 
-    icon = models.ImageField(upload_to='media/images/events/', blank=True)
-    image = models.ImageField(upload_to='media/images/events/', blank=True)
+    icon = models.ImageField(upload_to="media/images/events/", blank=True)
+    image = models.ImageField(upload_to="media/images/events/", blank=True)
 
     event_id = models.CharField(max_length=100, primary_key=True)
     is_promoted = models.BooleanField(default=False)
@@ -24,4 +24,3 @@ class Event(models.Model):
 
     def __str__(self):
         return self.name
-
