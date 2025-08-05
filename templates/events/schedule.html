@@ -1,1 +1,10 @@
 {% extends "template.html" %}
+{% block content %}
+    <p>Below, you can find which upcoming dates we’re planning to meet. It’s not common that we cancel an event, but if we do, we’ll mark it here.</p>
+    <p>To learn more about our events, check out the <a href="{% url 'schedule' %}">Event Schedule</a> page or select one of the events below.</p>
+
+    <div class="container mx-auto py-5 px-5">
+        <iframe src="https://calendar.google.com/calendar/embed?height=600&wkst=1&ctz=America%2FNew_York&showTz=0&showPrint=0&showCalendars=0&title=RVA%20Pieces&src=NmM1MXU4cHB2dGI2MThpM2FhcnN0MW8zbGNAZ3JvdXAuY2FsZW5kYXIuZ29vZ2xlLmNvbQ&color=%23d50000" style="border-width:0" width="800" height="600" frameborder="0" scrolling="no"></iframe>
+    </div>
+
+{% endblock %}
