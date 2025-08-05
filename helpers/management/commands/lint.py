@@ -16,7 +16,7 @@ class Command(BaseCommand):
         parser.add_argument(
             "--path",
             type=str,
-            help="Path to the file or directory to lint",
+            help="Path to the file or directory to lint, otherwise lints the entire project",
         )
 
         parser.add_argument(
@@ -32,28 +32,29 @@ class Command(BaseCommand):
         )
 
     def handle(self, *args, **options):
-        ruff = {}
-        djhtml = {}
-
-        if options["path"]:
-            ruff["path"] = options["path"]
-            djhtml["path"] = options["path"]
-        else:
-            ruff["path"] = "."
-            djhtml["path"] = "."
-
-        if options["fix"]:
-            ruff["fix"] = "format"
-            djhtml["fix"] = "--reformat"
-        else:
-            ruff["fix"] = "check"
-            djhtml["fix"] = "--lint"
-
         if options["python"]:
-            subprocess.run(["ruff", ruff["fix"], ruff["path"]], check=False)
+            args = [
+                "ruff",
+                "check",
+                options["path"] or ".",
+            ]
+
+            if options["fix"]:
+                args.append("--fix")
+
+            subprocess.run(
+                args,
+                check=False,
+            )
 
         if options["html"]:
             subprocess.run(
-                ["djlint", "./templates/**/*", "--extension=html.j2", djhtml["fix"], "--profile=django"],
+                [
+                    "djlint",
+                    options["path"] or "./templates/**/*",
+                    "--extension=html.j2",
+                    "--lint",
+                    "--profile=django",
+                ],
                 check=False,
             )

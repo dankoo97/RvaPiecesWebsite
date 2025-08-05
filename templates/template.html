@@ -1,8 +1,11 @@
+<!DOCTYPE html>
 <html lang="en" {# data-bs-theme="dark" #}>
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <meta http-equiv="X-UA-Compatible" content="ie=edge">
+        <meta name="description" content="RVA Pieces is a 501(c)3 nonprofit organization that exists to foster a thriving environment and active community for casual and competitive chess in our city, as well as provide access to stellar chess education for everyone, regardless of age or skill level.">
+        <meta name="keywords" content="chess, RVA, Richmond, Virginia">
         <title>RVA Pieces</title>
         <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/css/bootstrap.min.css"
               rel="stylesheet"
@@ -13,17 +16,17 @@
     </head>
     <body>
         <header>
-            <div class="container">{% include 'navbar.html' %}</div>
+            <div class="container">{% include "navbar.html" %}</div>
         </header>
         <main>
             <div class="container">
-                {% block content %}{% endblock %}
+                {% block content %}{% endblock content %}
             </div>
         </main>
         <footer>
             <div class="container-fluid bg-light text-white text-center py-3 sticky-bottom">
                 <ul class="nav justify-content-center">
-                    {% include 'social-media.html' %}
+                    {% include "social-media.html" %}
                 </ul>
             </div>
         </footer>
@@ -31,3 +34,4 @@
                 integrity="sha384-ndDqU0Gzau9qJ1lfW4pNLlhNTkCfHzAVBReH9diLvGRem5+R9g2FzA8ZGN954O5Q"
                 crossorigin="anonymous"></script>
     </body>
+</html>

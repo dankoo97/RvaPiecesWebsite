@@ -15,7 +15,7 @@
 </style>
 <nav class="navbar navbar-expand-lg">
     <div class="container-fluid">
-        <a class="navbar-brand" href="/">
+        <a class="navbar-brand" href="{% url 'index' %}">
             <img width="150"
                  height="150"
                  src="https://i0.wp.com/rvapieces.org/wp-content/uploads/2024/11/rvapieces-logo-no-border-square.png?w=720&ssl=1"
@@ -68,7 +68,7 @@
                 </li>
             </ul>
             <ul class="navbar-nav ms-auto">
-                {% include 'social-media.html' %}
+                {% include "social-media.html" %}
             </ul>
         </div>
     </div>
