@@ -1,12 +1,11 @@
-
 <div class="row align-items-start gx-5 my-5">
     <div class="col-8">
         <h4>{{ user.firstname }} {{ user.lastname }}</h4>
-        <p>
-            {{ user.bio }}
-        </p>
+        <p>{{ user.bio }}</p>
     </div>
     <div class="col-3">
-        <img src="{{ userprofile.image.url }}" class="img-fluid rounded-5" alt="{{ user.firstname }} {{ user.lastname }}" />
+        <img src="{{ userprofile.image.url }}"
+             class="img-fluid rounded-5"
+             alt="{{ user.firstname }} {{ user.lastname }}" />
     </div>
 </div>

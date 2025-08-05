@@ -1,42 +1,37 @@
 {% extends 'template.html' %}
-
 {% block content %}
-<div class="row align-items-start gx-5 my-5">
-    <div class="col-8">
-        <h2>{{ event.name }}</h2>
-
-        <p><a href="https://www.google.com/maps/search/{% querystring api=1 query=event.location %}">{{ event.location }}</a></p>
-
-
-        <div class="container">
-            {% autoescape off %}
-            {{ event.long_description | safe }}
-            {% endautoescape %}
+    <div class="row align-items-start gx-5 my-5">
+        <div class="col-8">
+            <h2>{{ event.name }}</h2>
+            <p>
+                <a href="https://www.google.com/maps/search/{% querystring api=1 query=event.location %}">{{ event.location }}</a>
+            </p>
+            <div class="container">
+                {% autoescape off %}
+                    {{ event.long_description | safe }}
+                {% endautoescape %}
+            </div>
+            {# Create invite link for recurring events? #}
+            <p>
+                <a href="https://google.com/calendar/event{% querystring eid=event.event_id %}">Add to your calendar</a>
+            </p>
+            {# Tournament link if event is tournament #}
+            {% if event.tournament_event_link %}
+                <a href="{{ event.tournament_event_link }}" class="btn btn-primary">Tournament</a>
+            {% endif %}
+            {% if event.tournament_pairings_link %}
+                <a href="{{ event.tournament_pairings_link }}" class="btn btn-primary">Pairings</a>
+            {% endif %}
+            {% if event.tournament_standings_link %}
+                <a href="{{ event.tournament_standings_link }}" class="btn btn-primary">Standings</a>
+            {% endif %}
         </div>
-
-        {# Create invite link for recurring events? #}
-        <p>
-            <a href="https://google.com/calendar/event{% querystring eid=event.event_id %}">Add to your calendar</a>
-        </p>
-
-        {# Tournament link if event is tournament #}
-        {% if event.tournament_event_link %}
-            <a href="{{ event.tournament_event_link }}" class="btn btn-primary">Tournament</a>
-        {% endif %}
-
-        {% if event.tournament_pairings_link %}
-            <a href="{{ event.tournament_pairings_link }}" class="btn btn-primary">Pairings</a>
-        {% endif %}
-
-        {% if event.tournament_standings_link %}
-            <a href="{{ event.tournament_standings_link }}" class="btn btn-primary">Standings</a>
+        {% if event.image %}
+            <div class="col-3">
+                <img src="{{ event.image.url }}"
+                     class="img-fluid rounded-5"
+                     alt="{{ event.name }}" />
+            </div>
         {% endif %}
     </div>
-
-    {% if event.image %}
-        <div class="col-3">
-            <img src="{{ event.image.url }}" class="img-fluid rounded-5" alt="{{ event.name }}" />
-        </div>
-    {% endif %}
-</div>
 {% endblock %}
