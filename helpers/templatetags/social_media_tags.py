@@ -25,3 +25,7 @@ def discord_invite():
 @register.simple_tag
 def email():
     return "rvapieces@gmail.com"
+
+@register.simple_tag
+def chessnut_page():
+    return "https://chessnut.club/c/rvapieces"

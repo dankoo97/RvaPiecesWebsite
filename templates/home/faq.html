@@ -38,11 +38,11 @@
             Our <a href="https://rvapieces.org/schedule/#beginner-classes">classes</a> at the library (relaunching in
             November) are targeted for beginners. However, you’re welcome to join even if you’re not a beginner. On the
             other hand, our <a href="https://rvapieces.org/schedule/#beginners-only">Beginners Only meetups</a> are
-            intended only for beginners. On <a href="https://rvapieces.org/contact/">Discord</a>, the #beginners-only
+            intended only for beginners. On <a href="{% discord_invite %}">Discord</a>, the #beginners-only
             channel is a discussion hub strictly for beginners to hang out amongst themselves. We want to give beginners
             the chance to learn and play with other beginners, but beginners are more than welcome at all of our events.
             If you’re not a beginner, you can join us at one of our many other
-            <a href="https://rvapieces.org/schedule/">events</a>.
+            <a href="{% url 'schedule' %}">events</a>.
         </p>
     </div>
 
@@ -64,11 +64,11 @@
         <p>
             It depends on the event. There’s no need to register for our casual game nights, Monroe Park, or beginner
             classes. For our <a href="https://rvapieces.org/schedule/#rated-ladder">USCF rated ladder</a>, we encourage
-            you to <a href="https://chessnut.club/c/rvapieces/events">preregister</a> online, but you can also register
+            you to <a href="{% chessnut_page %}/events">preregister</a> online, but you can also register
             in person. If you plan to come out to
             <a href="https://rvapieces.org/schedule/#backyard-blitz">Backyard Blitz</a>, DM
-            <strong>@Spenser (the only Spenser)</strong> on <a href="https://rvapieces.org/contact/">Discord</a> or
-            message us on <a href="https://www.instagram.com/rvapieces/">Instagram</a>, even if you’ve been before and
+            <strong>@Spenser (the only Spenser)</strong> on <a href="{% discord_invite %}">Discord</a> or
+            message us on <a href="{% instagram_page %}">Instagram</a>, even if you’ve been before and
             have the address.
         </p>
     </div>
@@ -136,7 +136,7 @@
             Yes! Starting November, we’ll be relaunching our
             <a href="https://rvapieces.org/schedule/#beginner-classes">beginner classes</a> at the library. If you’d
             like to work with a coach one-on-one, you can get in touch with one of the
-            <a href="https://rvapieces.org/private-coaching/">chess coaches</a> we recommend.
+            <a href="{% url 'private_coaching' %}">chess coaches</a> we recommend.
         </p>
     </div>
 

@@ -1,3 +1,4 @@
+from ckeditor.fields import RichTextField
 from django.db import models
 from django.utils.text import slugify
 
@@ -7,7 +8,7 @@ class Event(models.Model):
     name = models.CharField(max_length=100)
     slug = models.SlugField(max_length=100, unique=True, null=False, blank=False)
     short_description = models.TextField(max_length=500)
-    long_description = models.TextField(max_length=10_000, blank=True)
+    long_description = RichTextField(blank=True)
     location = models.CharField(max_length=100)
 
     icon = models.ImageField(upload_to='media/images/events/', blank=True)
