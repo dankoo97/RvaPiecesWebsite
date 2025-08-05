@@ -1,0 +1,4 @@
+{% for event in events %}
+    <hr>
+    {% include "events/short-details.html" with event=event %}
+{% endfor %}
