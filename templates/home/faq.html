@@ -1,9 +1,164 @@
 {% extends "template.html" %}
+{% load social_media_tags %}
 {% block content %}
-    <h2>Frequently Asked Questions</h2>
+    <h1>Frequently Asked Questions</h1>
 
-    <p>
+    <div>
+        <h2>Are kids/teens allowed?</h2>
+        <p>
+            Yes! We welcome players of all ages. Every venue we frequent is child-friendly with the exception of
+            GWARbar, which is 21+ after 9 pm.
+        </p>
+    </div>
 
-    </p>
+    <div>
+        <h2>I’m new to chess. Will there be other beginners at events?</h2>
+        <p>
+            Players of all skill levels are welcome! At any given event, there is usually a wide range of skill levels.
+            We’re all here because we love playing chess, and we enjoy welcoming new players to the game.
+        </p>
+        <p>
+            If you’d like to connect with other beginners, come visit one of our
+            <a href="https://rvapieces.org/schedule/#beginners-only">Beginners Only meetups</a>,
+            held every other week. Starting November, we’ll be relaunching our free
+            <a href="https://rvapieces.org/schedule/#beginner-classes">beginner classes</a>.
+            But again, even if you’re new to the game, you’re absolutely welcome at all of our events.
+        </p>
+    </div>
+
+    <div>
+        <h2>My rating is XYZ on Chess.com/Lichess. Does that make me a beginner?</h2>
+        <p>
+            Some things we do are set up with beginners in mind. When we talk about beginners, we’re thinking of those
+            with an Elo of less than 1000 or so. If you can beat
+            <a href="https://rvapieces.org/who-we-are/#jared">Jared</a>,
+            you’re probably not a beginner.
+        </p>
+        <p>
+            Our <a href="https://rvapieces.org/schedule/#beginner-classes">classes</a> at the library (relaunching in
+            November) are targeted for beginners. However, you’re welcome to join even if you’re not a beginner. On the
+            other hand, our <a href="https://rvapieces.org/schedule/#beginners-only">Beginners Only meetups</a> are
+            intended only for beginners. On <a href="https://rvapieces.org/contact/">Discord</a>, the #beginners-only
+            channel is a discussion hub strictly for beginners to hang out amongst themselves. We want to give beginners
+            the chance to learn and play with other beginners, but beginners are more than welcome at all of our events.
+            If you’re not a beginner, you can join us at one of our many other
+            <a href="https://rvapieces.org/schedule/">events</a>.
+        </p>
+    </div>
+
+    <div>
+        <h2>I used to coach Magnus Carlsen. Can anyone at RVA Pieces give me a challenge?</h2>
+        <p>Come find out! Some of us are pretty tough.</p>
+    </div>
+
+    <div>
+        <h2>Do I need to become a member?</h2>
+        <p>
+            Nope! Just show up and bring your A-game. Please also take a look at our
+            <a href="{% url 'code_of_conduct' %}">code of conduct</a>.
+        </p>
+    </div>
+
+    <div>
+        <h2>Do I need to preregister for events?</h2>
+        <p>
+            It depends on the event. There’s no need to register for our casual game nights, Monroe Park, or beginner
+            classes. For our <a href="https://rvapieces.org/schedule/#rated-ladder">USCF rated ladder</a>, we encourage
+            you to <a href="https://chessnut.club/c/rvapieces/events">preregister</a> online, but you can also register
+            in person. If you plan to come out to
+            <a href="https://rvapieces.org/schedule/#backyard-blitz">Backyard Blitz</a>, DM
+            <strong>@Spenser (the only Spenser)</strong> on <a href="https://rvapieces.org/contact/">Discord</a> or
+            message us on <a href="https://www.instagram.com/rvapieces/">Instagram</a>, even if you’ve been before and
+            have the address.
+        </p>
+    </div>
+
+    <div>
+        <h2>When do people usually arrive? Should I show up right on time?</h2>
+        <p>
+            It depends on the event. For casual game nights and Monroe Park, feel free to drop by whenever works for
+            you. Often there are a few players right at the start, with more joining as time goes on. For tournaments
+            and classes, we try to start those events promptly, so please arrive on time.
+        </p>
+    </div>
+
+    <div>
+        <h2>How do I know whether an event has been canceled?</h2>
+        <p>
+            We almost always meet for our regularly scheduled events. There are always folks who want to play chess!
+            That said, we do skip events that land on certain holidays. Outdoor events are canceled or rescheduled when
+            there is inclement weather. When we cancel an event, we try our best to mark it on the
+            <a href="{% url 'schedule' %}">calendar</a>. If you have a question about an event, the fastest
+            way to get in touch with us is <a href="{% discord_invite %}">Discord</a>.
+        </p>
+    </div>
+
+    <div>
+        <h2>Do I need to bring anything?</h2>
+        <p>
+            We usually have enough boards, but it’s never a bad idea to bring one. When we have a crowd, it’s nice to
+            have extras on hand. Even more so than boards, it helps to bring a chess clock if you have one. However,
+            it’s always possible to use a phone as a chess clock using the Chess.com or Lichess apps. It’s also OK if
+            you don’t want to play with a clock (see below).
+        </p>
+    </div>
+
+    <div>
+        <h2>Is it OK if I’ve never used a chess clock before? What if I play slowly?</h2>
+        <p>
+            Chess can be played at different speeds, and we enjoy playing it at every speed. The most important thing is
+            that you and the other player agree on a time control that you’re both comfortable with. Most of our casual
+            games are 5 minutes per player with a 2-second increment per move. However, it’s also common for games to be
+            10 minutes or 15 minutes per player. If you’ve never used a clock before, we promise you’ll pick it up
+            quickly. That said, players can also decide to forego a clock entirely and play leisurely.
+        </p>
+    </div>
+
+    <div>
+        <h2>I’ve heard about touch/move before. Do I have to move a piece if I touch it?</h2>
+        <p>
+            If you’re playing an unofficial game, even during a
+            <a href="https://rvapieces.org/schedule/#backyard-blitz">Backyard Blitz</a> tournament, then the touch/move
+            rule does <em><strong>not</strong></em> apply. A player’s move is over once they hit the clock. Be careful
+            though! If you’re playing a blitz (AKA fast) game, and you don’t notice that your king is in check when you
+            hit the clock, club rules say that your opponent has the right to capture your king. 💀
+        </p>
+        <p>
+            Our biweekly <a href="https://rvapieces.org/schedule/#rated-ladder">USCF rated ladder</a> is an official
+            tournament, and in that setting, touch/move <strong><em>does</em></strong> apply. If you touch a piece, and
+            you can legally move it, then you must do so.
+        </p>
+    </div>
+
+    <div>
+        <h2>Does RVA Pieces offer lessons?</h2>
+        <p>
+            Yes! Starting November, we’ll be relaunching our
+            <a href="https://rvapieces.org/schedule/#beginner-classes">beginner classes</a> at the library. If you’d
+            like to work with a coach one-on-one, you can get in touch with one of the
+            <a href="https://rvapieces.org/private-coaching/">chess coaches</a> we recommend.
+        </p>
+    </div>
+
+    <div>
+        <h2>I like what you’re doing here! Is there a way I can help?</h2>
+        <p>
+            We are enormously grateful for support, including all <a href="{% url 'donate' %}">donations</a>. Among
+            other things, donations help us buy boards, rent spaces, and pay our teachers.
+        </p>
+        <p>
+            We’re also greatly appreciative of our volunteers, who help keep things running smoothly. If you’d like to
+            learn more about volunteering, please <a href="{% url 'contact_us' %}">get in touch</a>.
+        </p>
+    </div>
+
+    <div>
+        <h2>I have another question. How can I get in touch?</h2>
+        <p>
+            The community chats among itself on Discord. It’s easy to sign up if you don’t already have an account. Come
+            say hi! You can also message us on Instagram or Facebook or email us. Check out our
+            <a href="{% url 'contact_us' %}">contact page</a> for details.
+        </p>
+    </div>
 
 {% endblock %}
