@@ -7,7 +7,12 @@ name = "pypi"
 django = "*"
 
 [dev-packages]
+ruff = "*"
+djlint = "*"
 
 [requires]
 python_version = "3.12"
 python_full_version = "3.12.6"
+
+[scripts]
+runserver = "python ./manage.py runserver"
