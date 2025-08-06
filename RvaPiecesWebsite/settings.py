@@ -42,6 +42,7 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
     "helpers.apps.HelpersConfig",
     "ckeditor",
+    "djstripe",
 ]
 
 MIDDLEWARE = [
@@ -133,3 +134,8 @@ STATICFILES_DIRS = [BASE_DIR / "static"]
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 GOOGLE_TOKEN_FILE = os.environ.get("GOOGLE_TOKEN_FILE")
+
+STRIPE_LIVE_SECRET_KEY = os.environ.get("STRIPE_LIVE_SECRET_KEY", "{your secret key}")
+STRIPE_TEST_SECRET_KEY = os.environ.get("STRIPE_TEST_SECRET_KEY", "{your secret key}")
+STRIPE_LIVE_MODE = False  # Change to True in production
+DJSTRIPE_FOREIGN_KEY_TO_FIELD = "id"

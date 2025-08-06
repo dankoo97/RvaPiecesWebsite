@@ -28,6 +28,7 @@ urlpatterns = (
         path("about/", include("about.urls")),
         path("events/", include("events.urls")),
         path("coaching/", include("coaching.urls")),
+        path("stripe/", include("djstripe.urls", namespace="stripe")),
     ]
     + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
     + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
