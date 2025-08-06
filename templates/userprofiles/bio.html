@@ -1,11 +1,24 @@
 <div class="row align-items-start gx-5 my-5">
     <div class="col-8">
-        <h4>{{ user.firstname }} {{ user.lastname }}</h4>
-        <p>{{ user.bio }}</p>
+        <h4>{{ userprofile.user.first_name }} {{ userprofile.user.last_name }}</h4>
+        {% for group in userprofile.user.groups.all %}<span class="badge bg-primary">{{ group.name }}</span>{% endfor %}
+        <p>{{ userprofile.bio|linebreaks }}</p>
+        {% if userprofile.discord %}
+            <p>
+                Discord: <b>@{{ userprofile.discord }}</b>
+            </p>
+        {% endif %}
+        {% if userprofile.user.email %}
+            <p>
+                Email: <a href="mailto:{{ userprofile.user.email }}">{{ userprofile.user.email }}</a>
+            </p>
+        {% endif %}
     </div>
     <div class="col-3">
-        <img src="{{ userprofile.image.url }}"
-             class="img-fluid rounded-5"
-             alt="{{ user.firstname }} {{ user.lastname }}" />
+        {% if userprofile.image %}
+            <img src="{{ userprofile.image.url }}"
+                 class="img-fluid rounded-5"
+                 alt="{{ userprofile.user.first_name }} {{ userprofile.user.last_name }}" />
+        {% endif %}
     </div>
 </div>

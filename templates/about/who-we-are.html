@@ -6,32 +6,6 @@
     </p>
     {% for userprofile in userprofiles %}
         <hr>
-        <div class="row align-items-start gx-5 my-5">
-            <div class="col-8">
-                <h4>{{ userprofile.user.first_name }} {{ userprofile.user.last_name }}</h4>
-                {% if userprofile.bio %}
-                    <p>{{ userprofile.bio|linebreaks }}</p>
-                {% else %}
-                    <p>There's not much to say about {{ userprofile.user.first_name }}</p>
-                {% endif %}
-                {% if userprofile.discord %}
-                    <p>
-                        Discord: <b>@{{ userprofile.discord }}</b>
-                    </p>
-                {% endif %}
-                {% if userprofile.user.email %}
-                    <p>
-                        Email: <a href="mailto:{{ userprofile.user.email }}">{{ userprofile.user.email }}</a>
-                    </p>
-                {% endif %}
-            </div>
-            <div class="col-3">
-                {% if userprofile.image %}
-                    <img src="{{ userprofile.image.url }}"
-                         class="img-fluid rounded-5"
-                         alt="{{ userprofile.user.first_name }} {{ userprofile.user.last_name }}" />
-                {% endif %}
-            </div>
-        </div>
+        {% include "userprofiles/bio.html" with userprofile=userprofile %}
     {% endfor %}
 {% endblock content %}
