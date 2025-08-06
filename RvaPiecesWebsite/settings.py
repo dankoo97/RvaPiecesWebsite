@@ -41,7 +41,7 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
     "helpers.apps.HelpersConfig",
-    "ckeditor",
+    "django_ckeditor_5",
     "djstripe",
 ]
 

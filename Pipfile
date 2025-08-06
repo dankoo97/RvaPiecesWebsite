@@ -5,10 +5,13 @@ name = "pypi"
 
 [packages]
 django = "*"
+django-ckeditor-5 = "*"
+dj-stripe = "*"
 
 [dev-packages]
 ruff = "*"
 djlint = "*"
+pre-commit = "*"
 
 [requires]
 python_version = "3.12"

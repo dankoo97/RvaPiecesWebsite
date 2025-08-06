@@ -1,5 +1,5 @@
+django-ckeditor-5
 Django==5.2.5
-django_ckeditor==6.7.3
 google_auth_oauthlib==1.2.2
 httplib2==0.22.0
 protobuf==6.31.1
