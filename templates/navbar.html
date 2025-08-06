@@ -49,25 +49,16 @@
                 <li class="nav-item">
                     <a class="nav-link" href="{% url 'schedule' %}">Schedule</a>
                 </li>
-                <li class="nav-item dropdown">
-                    <a class="nav-link dropdown-toggle"
-                       id="coachingDropdown"
-                       role="button"
-                       data-bs-toggle="dropdown"
-                       aria-haspopup="true"
-                       aria-expanded="false">Coaching</a>
-                    <div class="dropdown-menu" aria-labelledby="coachingDropdown">
-                        <a class="dropdown-item" href="{% url 'beginner_classes' %}">Beginner Classes</a>
-                        <a class="dropdown-item" href="{% url 'private_coaching' %}">Private Coaching</a>
-                    </div>
+                <li class="nav-item">
+                    <a class="nav-link" href="{% url 'private_coaching' %}">Coaching</a>
                 </li>
                 <li class="nav-item">
                     <a class="nav-link" href="{% url 'faq' %}">FAQ</a>
                 </li>
-                {#                TODO: Get api key from stripe #}
-                {#                <li class="nav-item">#}
-                {#                    <a class="nav-link" href="{% url 'donate' %}">Donate</a>#}
-                {#                </li>#}
+                {# TODO: Get api key from stripe #}
+                {# <li class="nav-item">#}
+                {#     <a class="nav-link" href="{% url 'donate' %}">Donate</a>#}
+                {# </li>#}
             </ul>
             <ul class="navbar-nav ms-auto">
                 {% include "social-media.html" %}
