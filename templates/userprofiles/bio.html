@@ -1,3 +1,8 @@
+<style>
+    .discord-icon {
+        color: #7289da;
+    }
+</style>
 <div class="row align-items-start gx-5 my-5">
     <div class="col-8">
         <h4>{{ userprofile.user.first_name }} {{ userprofile.user.last_name }}</h4>
@@ -5,7 +10,7 @@
         <p>{{ userprofile.bio|linebreaks }}</p>
         {% if userprofile.discord %}
             <p>
-                Discord: <b>@{{ userprofile.discord }}</b>
+                <i class="bi bi-discord discord-icon"></i> <b>@{{ userprofile.discord }}</b>
             </p>
         {% endif %}
         {% if userprofile.user.email %}
@@ -13,6 +18,21 @@
                 Email: <a href="mailto:{{ userprofile.user.email }}">{{ userprofile.user.email }}</a>
             </p>
         {% endif %}
+        {% if userprofile.chess_com %}
+            <p>
+                Chess.com: <b>{{ userprofile.chess_com }}</b>
+            </p>
+        {% endif %}
+        {% if userprofile.lichess %}
+            <p>
+                Lichess: <b>{{ userprofile.lichess }}</b>
+            </p>
+        {% endif %}
+        {% for key, value in userprofile.other_links.items %}
+            <p>
+                {{ key }}: <b>{{ value }}</b>
+            </p>
+        {% endfor %}
     </div>
     <div class="col-3">
         {% if userprofile.image %}
