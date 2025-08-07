@@ -13,7 +13,6 @@ class Event(models.Model):
     icon = models.ImageField(upload_to="media/images/events/", blank=True)
     image = models.ImageField(upload_to="media/images/events/", blank=True)
 
-    event_id = models.CharField(max_length=100, primary_key=True)
     is_promoted = models.BooleanField(default=False)
     is_archived = models.BooleanField(default=False)
 
