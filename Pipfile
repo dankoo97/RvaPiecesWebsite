@@ -7,6 +7,10 @@ name = "pypi"
 django = "*"
 django-ckeditor-5 = "*"
 dj-stripe = "*"
+gunicorn = "*"
+psycopg2-binary = "*"
+sqlparse = "*"
+asgiref = "*"
 
 [dev-packages]
 ruff = "*"

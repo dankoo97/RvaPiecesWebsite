@@ -1,4 +1,3 @@
-from django.contrib.auth.models import User
 from django.shortcuts import render
 
 from userprofile.models import UserProfile
@@ -8,13 +7,7 @@ from userprofile.models import UserProfile
 
 
 def who_we_are(request):
-    userprofiles = [
-        UserProfile.objects.get(user=User.objects.get(username="spenser")),
-        UserProfile.objects.get(user=User.objects.get(username="dan")),
-        UserProfile.objects.get(user=User.objects.get(username="matt")),
-    ]
-
-    print(userprofiles[1].image.url)
+    userprofiles = UserProfile.objects.all()
 
     return render(request, "about/who-we-are.html", {"userprofiles": userprofiles})
 
