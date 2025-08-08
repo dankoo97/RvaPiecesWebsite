@@ -3,20 +3,22 @@
     <p>
         RVA Pieces offers free group classes for beginners each week. If you’d like to work with a coach one-on-one, we recommend one of the following coaches in the Richmond area:
     </p>
-    <hr>
-    <h4>Spenser Kearns</h4>
-    <p>
-        Spenser Kearns has been teaching chess to players of all ages and skill levels in Richmond, both privately and publicly, since 2013. A competitive tournament player in his youth and the current President of RVA Pieces, Spenser is a lifelong student of the game with a passion and talent for helping both scholastic players and adult improvers reach their potential in chess.
-    </p>
-    <p>
-        A typical lesson with Spenser will entail a thorough examination of your recently played games, with a focus on evaluating your thought process for each move played. After that, Spenser will personally prepare exercises in tactics, opening theory, endgame technique, and everything in-between, specifically tailored to your needs as a player.
-    </p>
-    <p>To book a lesson, email Spenser at spenserkearns@gmail.com.</p>
-    <p>Rate: $40/hour or $70 for two hours</p>
-    <hr>
-    <h4>FM Paul Whitehead</h4>
-    <p>
-        FIDE Master Paul Whitehead is a former US Junior Champion and American Open Champion with an extensive background teaching chess to all ages and skill levels. Advanced students interested in private lessons can contact Paul at unoromkat@gmail.com.
-    </p>
-    <p>Rate: $100/1.5 hours</p>
+    {% for coach in coaches %}
+        <hr>
+        <div class="row align-items-start gx-5 my-5">
+            <div class="col-8">
+                <h4>{{ coach.first_name }} {{ coach.last_name }}</h4>
+                {% autoescape off %}
+                    <p>{{ coach.userprofile.coaching_description | linebreaks }}</p>
+                {% endautoescape %}
+            </div>
+            <div class="col-3">
+                {% if coach.userprofile.image %}
+                    <img src="{{ coach.userprofile.image.url }}"
+                         class="img-fluid rounded-5"
+                         alt="{{ coach.first_name }} {{ coach.last_name }}" />
+                {% endif %}
+            </div>
+        </div>
+    {% endfor %}
 {% endblock content %}

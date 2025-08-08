@@ -1,11 +1,14 @@
 from django.db import models
+from django_ckeditor_5.fields import CKEditor5Field
+
 
 # Create your models here.
 
 
 class UserProfile(models.Model):
     user = models.OneToOneField("auth.User", on_delete=models.CASCADE)
-    bio = models.TextField(max_length=500, blank=True)
+    bio = CKEditor5Field(blank=True)
+    coaching_description = CKEditor5Field(blank=True)
 
     discord = models.CharField(max_length=50, blank=True)
     chess_com = models.CharField(max_length=50, blank=True)

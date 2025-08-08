@@ -7,7 +7,9 @@
     <div class="col-8">
         <h4>{{ userprofile.user.first_name }} {{ userprofile.user.last_name }}</h4>
         {% for group in userprofile.user.groups.all %}<span class="badge bg-primary">{{ group.name }}</span>{% endfor %}
-        <p>{{ userprofile.bio|linebreaks }}</p>
+        {% autoescape off %}
+            <p>{{ userprofile.bio|linebreaks }}</p>
+        {% endautoescape %}
         {% if userprofile.discord %}
             <p>
                 <i class="bi bi-discord discord-icon"></i> <b>@{{ userprofile.discord }}</b>
