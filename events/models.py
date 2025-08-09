@@ -22,3 +22,12 @@ class Event(models.Model):
 
     def __str__(self):
         return self.name
+
+
+class EventInstance(models.Model):
+    parent_event = models.ForeignKey(Event, on_delete=models.CASCADE)
+    date = models.DateField()
+    time = models.TimeField()
+
+    def __str__(self):
+        return f"{self.parent_event.name} - {self.date}"
