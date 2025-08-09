@@ -35,6 +35,12 @@ COPY --chown=appuser:appuser . .
 # Set environment variables to optimize python
 ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
+ENV DOCKERIZE_VERSION=v0.9.4
+
+RUN apt-get update \
+    && apt-get install -y wget \
+    && wget -O - https://github.com/jwilder/dockerize/releases/download/$DOCKERIZE_VERSION/dockerize-linux-amd64-$DOCKERIZE_VERSION.tar.gz | tar xzf - -C /usr/local/bin \
+    && apt-get autoremove -yqq --purge wget && rm -rf /var/lib/apt/lists/*
 
 # Switch to non-root user
 USER appuser
@@ -42,5 +48,5 @@ USER appuser
 # Expose the Django port
 EXPOSE 8000
 
-# Run Django’s development server and migrate data
+# Run server and migrate data
 ENTRYPOINT ["bash", "docker-entrypoint.sh"]

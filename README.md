@@ -4,10 +4,10 @@
 ```aiignore
 Docker
 Docker Compose
-Python 3.12
+Python 3.12+
 Django
 Pipenv
-A modern IDE (Intellij, VSCode, etc.)
+A modern IDE (Intellij, VSCode, etc.) w/ any relevant plugins
 A modern browser
 ```
 
@@ -27,5 +27,9 @@ A modern browser
     DATABASE_HOST=db
     DATABASE_PORT=5432
     ```
-2. Then run `docker compose up`
-3. Go to http://localhost:8000/
+2. Start up the python environment with `pipenv shell`
+3. Create the database migrations with `python manage.py makemigrations`
+4. Start up the container with `docker compose up`
+5. Navigate to http://localhost:8000/ and verify that the site is running
+6. Create a superuser with `docker compose exec -it web python manage.py createsuperuser`
+7. Navigate to http://localhost:8000/admin/ and login with the credentials you just created to start populating the database
