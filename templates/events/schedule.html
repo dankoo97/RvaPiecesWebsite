@@ -1,24 +1,4 @@
-<style>
-    .responsive-iframe-container {
-        position: relative;
-        padding-bottom: 56.25%;
-        padding-top: 30px;
-        height: 600px;
-        overflow: hidden;
-    }
-
-    .responsive-iframe-container iframe,
-    .vresponsive-iframe-container object,
-    .vresponsive-iframe-container embed {
-        position: absolute;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-    }
-</style>
 {% extends "template.html" %}
-{% load dict_helper %}
 {% block content %}
     <p>
         Below, you can find which upcoming dates we’re planning to meet. It’s not common that we cancel an event, but if we do, we’ll mark it here.
@@ -27,29 +7,8 @@
         Check out our page on <a href="https://chessnut.club/c/rvapieces">Chess Nut</a> to sign up for our formal tournaments and ladder events
     </p>
     {% comment %}
-        TODO: Screen size? https://blog.vendilli.com/google-calendar-responsive
-        Suggest making 2 different calendars w/ monthly for desktop/tablet and w/schedule for mobile
+        TODO: make 2 different calendars w/ monthly for desktop/tablet and w/schedule for mobile
     {% endcomment %}
-    <div class="container-fluid mx-auto py-5 px-5 text-center">
-        <h4>{{ curr_day | date:"F Y" }}</h4>
-        <div class="row flex-nowrap justify-content-center">
-            {% for weekday in weekdays %}
-                <div class="col border border-dark">
-                    <p class="text-center">
-                        <b>{{ weekday | upper }}</b>
-                    </p>
-                </div>
-            {% endfor %}
-        </div>
-        {% for week in month %}
-            <div class="row flex-nowrap justify-content-center">
-                {% for day in week %}
-                    <div class="col border border-dark {% if day == curr_day %}bg-secondary-subtle{% endif %}">
-                        {% include "events/calendar_day.html" with schedule=event_instances|get_val:day %}
-                    </div>
-                {% endfor %}
-            </div>
-        {% endfor %}
-    </div>
+    {% include "events/calendar.html" %}
     {% include "events/list.html" with events=events %}
 {% endblock content %}

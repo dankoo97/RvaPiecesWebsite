@@ -1,18 +1,45 @@
-<p class="text-start">
-    {% if day.month == curr_day.month %}{{ day | date:"j" }}{% endif %}
-</p>
-{% for event_instance in schedule %}
-    <figure class="figure">
-        <a href="{% url 'event' event_instance.parent_event.slug %}">
-            {% if event_instance.parent_event.icon %}
-                <img src="{{ event_instance.parent_event.icon.url }}"
-                     alt="{{ event_instance.parent_event.name }}">
-            {% else %}
-                <p>
-                    <b>{{ event_instance.parent_event.name }}</b>
-                </p>
-            {% endif %}
-        </a>
-        <p class="figure-caption">{{ event_instance.time|time:"g:i a" }}</p>
-    </figure>
-{% endfor %}
+<style>
+    .calendar-day {
+        height: 10em;
+    }
+
+    .calendar-day figure * {
+        max-height: 5em;
+    }
+
+    .cancelled {
+        opacity: 20%;
+    }
+
+    .cancel-icon {
+        position: absolute;
+        font-size: 8em;
+        transform: translate(-50%, -75%);
+    }
+</style>
+<div class="col border border-dark {% if day == curr_day %}bg-secondary-subtle{% endif %} calendar-day">
+    <p class="text-start">
+        {% if day.month == curr_day.month %}{{ day | date:"j" }}{% endif %}
+    </p>
+    {% for event_instance in schedule %}
+        <figure class="figure row">
+            <a href="{% url 'event' event_instance.parent_event.slug %}">
+                {% if event_instance.parent_event.icon %}
+                    <img class="figure-img img-fluid justify-content-center {% if event_instance.is_cancelled %}cancelled{% endif %}"
+                         src="{{ event_instance.parent_event.icon.url }}"
+                         alt="{{ event_instance.parent_event.name }}">
+                    {% if event_instance.is_cancelled %}
+                        <div class="text-center">
+                            <i class="bi bi-x text-danger cancel-icon"></i>
+                        </div>
+                    {% endif %}
+                {% else %}
+                    <p>
+                        <b>{{ event_instance.parent_event.name }}</b>
+                    </p>
+                {% endif %}
+            </a>
+            <span class="figure-caption align-bottom text-center">{{ event_instance.time|time:"g:i a" }}</span>
+        </figure>
+    {% endfor %}
+</div>

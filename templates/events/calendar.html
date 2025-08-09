@@ -1,0 +1,20 @@
+{% load dict_helper %}
+<div class="container-fluid mx-auto py-5 px-5 text-center calendar">
+    <h4>{{ curr_day | date:"F Y" }}</h4>
+    <div class="row flex-nowrap justify-content-center">
+        {% for weekday in weekdays %}
+            <div class="col border border-dark">
+                <h5 class="text-center">
+                    <b>{{ weekday | upper }}</b>
+                </h5>
+            </div>
+        {% endfor %}
+    </div>
+    {% for week in month %}
+        <div class="row flex-nowrap justify-content-center">
+            {% for day in week %}
+                {% include "events/calendar_day.html" with schedule=event_instances|get_val:day %}
+            {% endfor %}
+        </div>
+    {% endfor %}
+</div>

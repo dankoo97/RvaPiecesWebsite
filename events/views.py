@@ -18,7 +18,19 @@ class ListEventsView(generic.ListView):
 
 class EventView(generic.DetailView):
     model = Event
-    template_name = "events/detail.html"
+    template_name = "events/event-details.html"
+
+    def get_context_data(self, **kwargs):
+        next_event = (
+            EventInstance.objects.filter(
+                parent_event=self.object,
+                date__gte=datetime.datetime.today(),
+                is_cancelled=False,
+            )
+            .order_by("date")
+            .first()
+        )
+        return {"next_event": next_event, "event": self.object, **kwargs}
 
 
 def schedule(request):
