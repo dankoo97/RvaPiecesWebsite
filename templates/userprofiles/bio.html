@@ -3,8 +3,15 @@
         color: #7289da;
     }
 </style>
-<div class="row align-items-start gx-5 my-5">
-    <div class="col-8">
+<div class="clearfix">
+    <div class="col-3 float-end ps-3">
+        {% if userprofile.image %}
+            <img src="{{ userprofile.image.url }}"
+                 class="img-fluid rounded-5"
+                 alt="{{ userprofile.user.first_name }} {{ userprofile.user.last_name }}" />
+        {% endif %}
+    </div>
+    <div class="align-items-start gx-5 my-5">
         <h4>{{ userprofile.user.first_name }} {{ userprofile.user.last_name }}</h4>
         {% for group in userprofile.user.groups.all %}<span class="badge bg-primary">{{ group.name }}</span>{% endfor %}
         {% autoescape off %}
@@ -35,12 +42,5 @@
                 {{ key }}: <b>{{ value }}</b>
             </p>
         {% endfor %}
-    </div>
-    <div class="col-3">
-        {% if userprofile.image %}
-            <img src="{{ userprofile.image.url }}"
-                 class="img-fluid rounded-5"
-                 alt="{{ userprofile.user.first_name }} {{ userprofile.user.last_name }}" />
-        {% endif %}
     </div>
 </div>
