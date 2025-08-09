@@ -1,0 +1,18 @@
+<p class="text-start">
+    {% if day.month == curr_day.month %}{{ day | date:"j" }}{% endif %}
+</p>
+{% for event_instance in schedule %}
+    <figure class="figure">
+        <a href="{% url 'event' event_instance.parent_event.slug %}">
+            {% if event_instance.parent_event.icon %}
+                <img src="{{ event_instance.parent_event.icon.url }}"
+                     alt="{{ event_instance.parent_event.name }}">
+            {% else %}
+                <p>
+                    <b>{{ event_instance.parent_event.name }}</b>
+                </p>
+            {% endif %}
+        </a>
+        <p class="figure-caption">{{ event_instance.time|time:"g:i a" }}</p>
+    </figure>
+{% endfor %}
