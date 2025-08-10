@@ -1,5 +1,6 @@
 from django.db import models
 from django_ckeditor_5.fields import CKEditor5Field
+from recurring.models import CalendarEntry
 
 
 # Create your models here.
@@ -8,7 +9,7 @@ class Event(models.Model):
     slug = models.SlugField(max_length=100, unique=True, null=False, blank=False)
     short_description = models.TextField(max_length=500)
     long_description = CKEditor5Field(blank=True)
-    location = models.CharField(max_length=100)
+    location = models.CharField(max_length=100, blank=True)
 
     icon = models.ImageField(upload_to="media/images/events/", blank=True)
     image = models.ImageField(upload_to="media/images/events/", blank=True)
@@ -20,16 +21,11 @@ class Event(models.Model):
     tournament_pairings_link = models.URLField(blank=True)
     tournament_standings_link = models.URLField(blank=True)
 
+    # Calendar entry is bugged for non utc timezones, and will increment the time by 4 hours each time it is saved
+    # https://github.com/boosh/django_recurring/issues/4
+    calendar = models.ForeignKey(
+        CalendarEntry, on_delete=models.CASCADE, blank=True, null=True
+    )
+
     def __str__(self):
         return self.name
-
-
-class EventInstance(models.Model):
-    parent_event = models.ForeignKey(Event, on_delete=models.CASCADE)
-    date = models.DateField()
-    time = models.TimeField()
-
-    is_cancelled = models.BooleanField(default=False)
-
-    def __str__(self):
-        return f"{self.parent_event.name} - {self.date}"

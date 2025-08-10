@@ -17,29 +17,24 @@
         transform: translate(-50%, -75%);
     }
 </style>
-<div class="col border border-dark {% if day == curr_day %}bg-secondary-subtle{% endif %} calendar-day">
+<div class="col border border-dark {% if day == curr_day %}bg-info-subtle{% endif %} calendar-day">
     <p class="text-start">
         {% if day.month == curr_day.month %}{{ day | date:"j" }}{% endif %}
     </p>
     {% for event_instance in schedule %}
         <figure class="figure row">
-            <a href="{% url 'event' event_instance.parent_event.slug %}">
-                {% if event_instance.parent_event.icon %}
-                    <img class="figure-img img-fluid justify-content-center {% if event_instance.is_cancelled %}cancelled{% endif %}"
-                         src="{{ event_instance.parent_event.icon.url }}"
-                         alt="{{ event_instance.parent_event.name }}">
-                    {% if event_instance.is_cancelled %}
-                        <div class="text-center">
-                            <i class="bi bi-x text-danger cancel-icon"></i>
-                        </div>
-                    {% endif %}
+            <a href="{% url 'event' event_instance.event.slug %}">
+                {% if event_instance.event.icon %}
+                    <img class="figure-img img-fluid justify-content-center"
+                         src="{{ event_instance.event.icon.url }}"
+                         alt="{{ event_instance.event.name }}">
                 {% else %}
                     <p>
-                        <b>{{ event_instance.parent_event.name }}</b>
+                        <b>{{ event_instance.event.name }}</b>
                     </p>
                 {% endif %}
             </a>
-            <span class="figure-caption align-bottom text-center">{{ event_instance.time|time:"g:i a" }}</span>
+            <span class="figure-caption align-bottom text-center">{{ event_instance.start_time|time:"g:i a" }}</span>
         </figure>
     {% endfor %}
 </div>

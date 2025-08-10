@@ -1,11 +1,12 @@
 import datetime
 import calendar
 from collections import defaultdict
+from zoneinfo import ZoneInfo
 
 from django.shortcuts import render
 from django.views import generic
 
-from events.models import Event, EventInstance
+from events.models import Event
 
 
 # Create your views here.
@@ -21,34 +22,52 @@ class EventView(generic.DetailView):
     template_name = "events/event-details.html"
 
     def get_context_data(self, **kwargs):
-        next_event = (
-            EventInstance.objects.filter(
-                parent_event=self.object,
-                date__gte=datetime.datetime.today(),
-                is_cancelled=False,
-            )
-            .order_by("date")
-            .first()
-        )
-        return {"next_event": next_event, "event": self.object, **kwargs}
+        return {
+            "next_event": self.object.calendar.next_occurrence,
+            "event": self.object,
+            **kwargs,
+        }
+
+
+class EventInstance:
+    def __init__(self, event, start_time, end_time=None):
+        self.event = event
+        self.start_time = start_time
+        self.end_time = end_time
 
 
 def schedule(request):
-    curr_day = datetime.datetime.now().date()
+    curr_datetime = datetime.datetime.now(tz=ZoneInfo("US/Eastern"))
+    month_start = datetime.datetime(
+        year=curr_datetime.year, month=curr_datetime.month, day=1
+    )
     month = calendar.Calendar()
     month.setfirstweekday(calendar.SUNDAY)
 
     events = Event.objects.filter(is_archived=False)
 
     event_instances = defaultdict(list)
-    for instance in EventInstance.objects.filter(date__month=curr_day.month):
-        event_instances[instance.date].append(instance)
+    for event in events:
+        if event.calendar:
+            instances = event.calendar.to_rruleset().between(
+                month_start, month_start + datetime.timedelta(days=31), inc=True
+            )
+
+            for instance in instances:
+                # TODO: django-recurring timezones are bugged, so this should allow us to use UTC and just treat it as US/Eastern
+                # https://github.com/boosh/django_recurring/issues/4
+                event_instances[instance.date()].append(
+                    EventInstance(event, instance.astimezone(ZoneInfo("US/Eastern")))
+                )
 
     context = {
         "event_instances": event_instances,
         "events": events,
-        "curr_day": curr_day,
-        "month": list(month.monthdatescalendar(curr_day.year, curr_day.month)),
+        "curr_day": curr_datetime.date(),
+        "month": list(
+            month.monthdatescalendar(curr_datetime.year, curr_datetime.month)
+        ),
         "weekdays": [*calendar.day_abbr[-1:], *calendar.day_abbr[:-1]],
+        "announcements": [],
     }
     return render(request, "events/schedule.html", context)
