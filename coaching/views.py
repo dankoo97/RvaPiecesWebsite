@@ -5,5 +5,5 @@ from django.shortcuts import render
 
 
 def private_coaching(request):
-    coaches = User.objects.filter(groups__name="Coach").order_by("userprofile__order")
+    coaches = User.objects.filter(groups__name="Coach")
     return render(request, "coaching/private-coaching.html", {"coaches": coaches})
