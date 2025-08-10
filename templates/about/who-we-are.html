@@ -1,11 +1,12 @@
 {% extends "template.html" %}
+{% load board %}
 {% block content %}
     <h2>Board Members and Volunteers</h2>
     <p>
         RVA Pieces is guided by our board members based on input from the community. Below, you can find a list of our current board members and other core volunteers:
     </p>
-    {% for user in board %}
+    {% for userprofile in board|sort_board %}
         <hr>
-        {% include "userprofiles/bio.html" with userprofile=user.userprofile %}
+        {% include "userprofiles/bio.html" with userprofile=userprofile %}
     {% endfor %}
 {% endblock content %}

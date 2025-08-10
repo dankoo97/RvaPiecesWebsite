@@ -71,6 +71,7 @@ TEMPLATES = [
             ],
             "libraries": {
                 "social_media_tags": "helpers.templatetags.social_media_tags",
+                "userprofile_tags": "userprofile.templatetags.board",
             },
         },
     },
@@ -160,6 +161,8 @@ customColorPalette = [
     {"color": "hsl(207, 90%, 54%)", "label": "Blue"},
 ]
 
+CKEDITOR_5_CUSTOM_CSS = "styles/ckeditor.css"
+
 CKEDITOR_5_CONFIGS = {
     "default": {
         "toolbar": {
@@ -174,7 +177,8 @@ CKEDITOR_5_CONFIGS = {
                 "blockQuote",
                 "imageUpload",
             ],
-        }
+        },
+        "allowedContent": True,
     },
     "extends": {
         "blockToolbar": [

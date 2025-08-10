@@ -39,7 +39,10 @@ class EventInstance:
 def schedule(request):
     curr_datetime = datetime.datetime.now(tz=ZoneInfo("US/Eastern"))
     month_start = datetime.datetime(
-        year=curr_datetime.year, month=curr_datetime.month, day=1
+        year=curr_datetime.year,
+        month=curr_datetime.month,
+        day=1,
+        tzinfo=ZoneInfo("UTC"),
     )
     month = calendar.Calendar()
     month.setfirstweekday(calendar.SUNDAY)

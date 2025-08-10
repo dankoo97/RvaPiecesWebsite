@@ -1,12 +1,12 @@
-from django.contrib.auth.models import User
 from django.shortcuts import render
+from userprofile.models import UserProfile
+
 
 # Create your views here.
 
 
 def who_we_are(request):
-    board = User.objects.filter(groups__name="Board").order_by("userprofile__order")
-
+    board = UserProfile.board.all()
     return render(request, "about/who-we-are.html", {"board": board})
 
 

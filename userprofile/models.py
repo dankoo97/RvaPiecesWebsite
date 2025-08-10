@@ -3,6 +3,20 @@ from django_ckeditor_5.fields import CKEditor5Field
 
 
 # Create your models here.
+class BoardManager(models.Manager):
+    custom_order_by_group = [
+        "President",
+        "Treasurer",
+        "Secretary",
+        "Club Tournament Director",
+        "Community Outreach Director",
+        "Photographer",
+        "Web Admin",
+        "Board",
+    ]
+
+    def get_queryset(self):
+        return super().get_queryset().filter(user__groups__name="Board")
 
 
 class UserProfile(models.Model):
@@ -13,10 +27,12 @@ class UserProfile(models.Model):
     discord = models.CharField(max_length=50, blank=True)
     chess_com = models.CharField(max_length=50, blank=True)
     lichess = models.CharField(max_length=50, blank=True)
-    other_links = models.JSONField(blank=True)
+    other_links = models.JSONField(default=dict, blank=True)
 
     image = models.ImageField(upload_to="media/images/profile_images/", blank=True)
-    order = models.IntegerField(unique=True)
+
+    objects = models.Manager()
+    board = BoardManager()
 
     def __str__(self):
         return f"{self.user.first_name} {self.user.last_name}"
