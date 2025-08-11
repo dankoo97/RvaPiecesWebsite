@@ -4,7 +4,7 @@ verify_ssl = true
 name = "pypi"
 
 [packages]
-django = "*"
+django = ">=5.0"
 django-ckeditor-5 = "*"
 dj-stripe = "*"
 gunicorn = "*"
@@ -19,8 +19,5 @@ djlint = "*"
 pre-commit = "*"
 
 [requires]
-python_version = "3.12"
-python_full_version = "3.12.6"
-
-[scripts]
-runserver = "python ./manage.py runserver"
+python_version = "3.13"
+python_full_version = "3.13.0"
