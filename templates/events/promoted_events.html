@@ -1,0 +1,7 @@
+<!--Iterates through any given event list to return promoted events-->
+{% for event in events %}
+    {% if event.is_promoted %}
+        <hr>
+        {% include "events/short-details.html" with event=event %}
+    {% endif %}
+{% endfor %}

@@ -27,6 +27,11 @@
         </div>
     </div>
     <hr>
+    <h3>
+        Our Upcoming Events!
+    </h3>
+    {% include "events/promoted_events.html" with events=events%}
+    <hr>
     <div id="carouselSlides" class="carousel slide" data-bs-ride="carousel">
         <div class="carousel-indicators">
             <button data-bs-target="#carouselSlides"
