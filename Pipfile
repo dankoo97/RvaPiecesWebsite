@@ -4,7 +4,6 @@ verify_ssl = true
 name = "pypi"
 
 [packages]
-django = "*"
 django-ckeditor-5 = "*"
 dj-stripe = "*"
 gunicorn = "*"
@@ -12,6 +11,7 @@ psycopg2-binary = "*"
 sqlparse = "*"
 asgiref = "*"
 django-recurring = "*"
+django = "*"
 
 [dev-packages]
 ruff = "*"
@@ -19,8 +19,8 @@ djlint = "*"
 pre-commit = "*"
 
 [requires]
-python_version = "3.12"
-python_full_version = "3.12.6"
+python_version = "3.11"
+python_full_version = "3.11.2"
 
 [scripts]
 runserver = "python ./manage.py runserver"

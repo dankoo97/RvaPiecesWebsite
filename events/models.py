@@ -6,8 +6,8 @@ from recurring.models import CalendarEntry
 # Create your models here.
 class Event(models.Model):
     name = models.CharField(max_length=100)
-    slug = models.SlugField(max_length=100, unique=True, null=False, blank=False)
-    short_description = models.TextField(max_length=500)
+    slug = models.SlugField(max_length=100, unique=True, null=False, blank=True)
+    short_description = models.TextField(max_length=500, blank=True)
     long_description = CKEditor5Field(blank=True)
     location = models.CharField(max_length=100, blank=True)
 
