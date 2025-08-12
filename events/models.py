@@ -10,7 +10,7 @@ class Event(models.Model):
     short_description = models.TextField(
         max_length=500, default="Things are happening at Rva Pieces!"
     )
-    long_description = CKEditor5Field(blank=True)
+    long_description = CKEditor5Field(default="Things are happening at Rva Pieces!")
     location = models.CharField(max_length=100, blank=True)
 
     icon = models.ImageField(upload_to="media/images/events/", blank=True)
@@ -28,6 +28,12 @@ class Event(models.Model):
     calendar = models.ForeignKey(
         CalendarEntry, on_delete=models.CASCADE, blank=True, null=True
     )
+
+    class EventInstance:
+        def __init__(self, event, start_time, end_time=None):
+            self.event = event
+            self.start_time = start_time
+            self.end_time = end_time
 
     def __str__(self):
         return self.name
