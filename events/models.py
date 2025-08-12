@@ -31,3 +31,14 @@ class Event(models.Model):
 
     def __str__(self):
         return self.name
+
+
+class Announcement(models.Model):
+    content = models.TextField(max_length=200, default="Something is happening!")
+    expires = models.DateTimeField(blank=True, null=True)
+
+    class Meta:
+        ordering = ["expires"]
+
+    def __str__(self):
+        return self.content

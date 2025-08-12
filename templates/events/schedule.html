@@ -6,6 +6,13 @@
     <p>
         Check out our page on <a href="https://chessnut.club/c/rvapieces">Chess Nut</a> to sign up for our formal tournaments and ladder events
     </p>
+    {% for announcement in announcements %}
+        {% autoescape off %}
+            <div class="container">
+                <i class="bi bi-exclamation-lg text-danger"></i>{{ announcement.content }}
+            </div>
+        {% endautoescape %}
+    {% endfor %}
     {% comment %}
         TODO: make 2 different calendars w/ monthly for desktop/tablet and w/schedule for mobile
     {% endcomment %}

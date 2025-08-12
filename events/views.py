@@ -6,7 +6,7 @@ from zoneinfo import ZoneInfo
 from django.shortcuts import render
 from django.views import generic
 
-from events.models import Event
+from events.models import Event, Announcement
 
 
 # Create your views here.
@@ -71,6 +71,6 @@ def schedule(request):
             month.monthdatescalendar(curr_datetime.year, curr_datetime.month)
         ),
         "weekdays": [*calendar.day_abbr[-1:], *calendar.day_abbr[:-1]],
-        "announcements": [],
+        "announcements": Announcement.objects.all(),
     }
     return render(request, "events/schedule.html", context)
