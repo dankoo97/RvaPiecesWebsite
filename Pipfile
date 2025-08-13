@@ -12,6 +12,7 @@ psycopg2-binary = "*"
 sqlparse = "*"
 asgiref = "*"
 django-recurring = "*"
+whitenoise = "*"
 
 [dev-packages]
 ruff = "*"
