@@ -1,3 +1,7 @@
+import datetime
+import os
+
+import requests
 from django.db import models
 from django_ckeditor_5.fields import CKEditor5Field
 from recurring.models import CalendarEntry
@@ -37,6 +41,34 @@ class Event(models.Model):
 
     def __str__(self):
         return self.name
+
+    @staticmethod
+    def get_chessnut_event(chess_club_id, *, start_date=None, end_date=None):
+        if start_date is None:
+            start_date = datetime.date.min
+        if end_date is None:
+            end_date = datetime.date.max
+
+        headers = {"Authorization": f"Bearer {os.environ.get('CHESSNUT_API_KEY')}"}
+        params = {}
+        response = requests.get(
+            f"https://chessnut.club/api/v1/club/{chess_club_id}/events/fetch-all",
+            headers=headers,
+            params=params,
+        )
+        if response.status_code != 200:
+            return []
+        events = response.json()
+
+        events_on_date = []
+        for event in events["events"]:
+            date = datetime.datetime.strptime(
+                event["start_date"][:10], "%Y-%m-%d"
+            ).date()
+            if start_date <= date <= end_date:
+                events_on_date.append(event)
+
+        return events_on_date
 
 
 class Announcement(models.Model):

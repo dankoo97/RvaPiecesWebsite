@@ -10,8 +10,6 @@ from events.models import Event, Announcement
 
 
 # Create your views here.
-
-
 class ListEventsView(generic.ListView):
     model = Event
     template_name = "events/list.html"
