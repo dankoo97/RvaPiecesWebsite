@@ -42,7 +42,6 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
     "helpers.apps.HelpersConfig",
     "django_ckeditor_5",
-    "djstripe",
     "recurring",
 ]
 

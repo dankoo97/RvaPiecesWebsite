@@ -55,10 +55,9 @@
                 <li class="nav-item">
                     <a class="nav-link" href="{% url 'faq' %}">FAQ</a>
                 </li>
-                {# TODO: Get api key from stripe #}
-                {# <li class="nav-item">#}
-                {#     <a class="nav-link" href="{% url 'donate' %}">Donate</a>#}
-                {# </li>#}
+                <li class="nav-item">
+                    <a class="nav-link" href="{% url 'donate' %}">Donate</a>
+                </li>
             </ul>
             <ul class="navbar-nav ms-auto">
                 {% include "social-media.html" %}
