@@ -28,6 +28,13 @@ DEBUG = bool(os.environ.get("DEBUG", default=0))
 
 ALLOWED_HOSTS = os.environ.get("DJANGO_ALLOWED_HOSTS", "127.0.0.1").split(",")
 
+CORS_ALLOWED_ORIGINS = os.environ.get(
+    "CORS_ALLOWED_ORIGINS", "http://127.0.0.1:8080"
+).split(",")
+CSRF_TRUSTED_ORIGINS = os.environ.get(
+    "CSRF_TRUSTED_ORIGINS", "http://127.0.0.1:8080"
+).split(",")
+
 
 # Application definition
 
@@ -43,12 +50,14 @@ INSTALLED_APPS = [
     "helpers.apps.HelpersConfig",
     "django_ckeditor_5",
     "recurring",
+    "storages",
+    "corsheaders",
 ]
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
-    "whitenoise.middleware.WhiteNoiseMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
+    "corsheaders.middleware.CorsMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
@@ -89,10 +98,10 @@ DATABASES = {
             os.getenv("DATABASE_ENGINE", "sqlite3")
         ),
         "NAME": os.getenv("DATABASE_NAME", BASE_DIR / "db.sqlite3"),
-        "USER": os.getenv("DATABASE_USERNAME", "myprojectuser"),
-        "PASSWORD": os.getenv("DATABASE_PASSWORD", "password"),
-        "HOST": os.getenv("DATABASE_HOST", "127.0.0.1"),
-        "PORT": os.getenv("DATABASE_PORT", 5432),
+        "USER": os.getenv("DATABASE_USERNAME"),
+        "PASSWORD": os.getenv("DATABASE_PASSWORD"),
+        "HOST": os.getenv("DATABASE_HOST"),
+        "PORT": os.getenv("DATABASE_PORT"),
     }
 }
 
@@ -115,11 +124,16 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
-STORAGES = {
-    "staticfiles": {
-        "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage"
+GS_BUCKET_NAME = os.environ.get("GS_BUCKET_NAME")
+if GS_BUCKET_NAME:
+    STORAGES = {
+        "default": {
+            "BACKEND": "storages.backends.gcloud.GoogleCloudStorage",
+        },
+        "staticfiles": {
+            "BACKEND": "storages.backends.gcloud.GoogleCloudStorage",
+        },
     }
-}
 
 
 # Internationalization
@@ -138,9 +152,15 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/5.2/howto/static-files/
 
 MEDIA_ROOT = BASE_DIR / "media"
-MEDIA_URL = "/media/"
+MEDIA_URL = (
+    f"https://storage.googleapis.com/{GS_BUCKET_NAME}/" if GS_BUCKET_NAME else "/media/"
+)
 
-STATIC_URL = "/static/"
+STATIC_URL = (
+    f"https://storage.googleapis.com/{GS_BUCKET_NAME}/"
+    if GS_BUCKET_NAME
+    else "/static/"
+)
 STATICFILES_DIRS = [
     BASE_DIR / "static",
 ]
@@ -152,11 +172,6 @@ STATIC_ROOT = BASE_DIR / "staticfiles"
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 GOOGLE_TOKEN_FILE = os.environ.get("GOOGLE_TOKEN_FILE")
-
-STRIPE_LIVE_SECRET_KEY = os.environ.get("STRIPE_LIVE_SECRET_KEY", "{your secret key}")
-STRIPE_TEST_SECRET_KEY = os.environ.get("STRIPE_TEST_SECRET_KEY", "{your secret key}")
-STRIPE_LIVE_MODE = False  # Change to True in production
-DJSTRIPE_FOREIGN_KEY_TO_FIELD = "id"
 
 customColorPalette = [
     {"color": "hsl(4, 90%, 58%)", "label": "Red"},

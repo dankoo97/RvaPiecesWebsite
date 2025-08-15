@@ -11,7 +11,9 @@ psycopg2-binary = "*"
 sqlparse = "*"
 asgiref = "*"
 django-recurring = "*"
-whitenoise = "*"
+django-storages = {extras = ["google"], version = "*"}
+django-cors-headers = "*"
+cloud-sql-python-connector = {extras = ["pg8000"], version = "*"}
 
 [dev-packages]
 ruff = "*"
