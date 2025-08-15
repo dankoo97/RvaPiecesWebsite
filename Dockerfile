@@ -46,7 +46,7 @@ RUN apt-get update \
 USER appuser
 
 # Expose the Django port
-EXPOSE 8000
+EXPOSE 8080
 
 # Run server and migrate data
 ENTRYPOINT ["bash", "docker-entrypoint.sh"]
