@@ -1,27 +1,25 @@
 {% extends "template.html" %}
 {% block content %}
     <div class="clearfix">
+        <h2>{{ event.name }}</h2>
         {% if event.image %}
-            <div class="col-5 float-end ps-3">
+            <div class="container-fluid col-md-5 float-md-end ps-3 pt-2">
                 <img src="{{ event.image.url }}"
                      class="img-fluid rounded-5"
                      alt="{{ event.name }}" />
             </div>
         {% endif %}
-        <div class="align-items-start gx-5 my-5">
-            <h2>{{ event.name }}</h2>
+        <div class="align-items-start gx-md-5">
             <p>
                 <a href="https://www.google.com/maps/search/{% querystring api=1 query=event.location %}">{{ event.location }}</a>
             </p>
-            <div class="container">
-                {% if event.long_description|length > 0 %}
-                    {% autoescape off %}
-                        {{ event.long_description | safe }}
-                    {% endautoescape %}
-                {% else %}
-                    <p>{{ event.short_description }}</p>
-                {% endif %}
-            </div>
+            {% if event.long_description|length > 0 %}
+                {% autoescape off %}
+                    {{ event.long_description | safe }}
+                {% endautoescape %}
+            {% else %}
+                <p>{{ event.short_description }}</p>
+            {% endif %}
             {% if next_event %}<p>Next meeting: {{ next_event.date|date:"l, F j, Y" }} {{ next_event.time|time }}</p>{% endif %}
             {# Tournament link if event is tournament #}
             {% if event.tournament_event_link %}
