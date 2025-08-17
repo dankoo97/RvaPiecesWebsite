@@ -44,6 +44,9 @@ class Event(models.Model):
 
     @staticmethod
     def get_chessnut_event(chess_club_id, *, start_date=None, end_date=None):
+        if not os.environ.get("CHESSNUT_API_KEY"):
+            raise ValueError("CHESSNUT_API_KEY environment variable not set")
+
         if start_date is None:
             start_date = datetime.date.min
         if end_date is None:
