@@ -33,12 +33,6 @@ class Event(models.Model):
         CalendarEntry, on_delete=models.CASCADE, blank=True, null=True
     )
 
-    class EventInstance:
-        def __init__(self, event, start_time, end_time=None):
-            self.event = event
-            self.start_time = start_time
-            self.end_time = end_time
-
     def __str__(self):
         return self.name
 

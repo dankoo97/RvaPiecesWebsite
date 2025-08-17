@@ -51,9 +51,10 @@ def schedule(request):
                 # TODO: django-recurring timezones are bugged, so this should allow us to use UTC and just treat it as US/Eastern
                 # https://github.com/boosh/django_recurring/issues/4
                 event_instances[instance.date()].append(
-                    Event.EventInstance(
-                        event, instance.astimezone(ZoneInfo("US/Eastern"))
-                    )
+                    {
+                        "event": event,
+                        "start_time": instance.time(),
+                    }
                 )
 
     context = {
