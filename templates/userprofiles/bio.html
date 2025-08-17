@@ -4,16 +4,16 @@
     }
 </style>
 <div class="clearfix">
-    <div class="col-3 float-end ps-3">
+    <h4>{{ userprofile.user.first_name }} {{ userprofile.user.last_name }}</h4>
+    {% for group in userprofile.user.groups.all %}<span class="badge bg-primary mx-1">{{ group.name }}</span>{% endfor %}
+    <div class="col-md-3 float-md-end ps-3 pt-2">
         {% if userprofile.image %}
             <img src="{{ userprofile.image.url }}"
                  class="img-fluid rounded-5"
                  alt="{{ userprofile.user.first_name }} {{ userprofile.user.last_name }}" />
         {% endif %}
     </div>
-    <div class="align-items-start gx-5 my-5">
-        <h4>{{ userprofile.user.first_name }} {{ userprofile.user.last_name }}</h4>
-        {% for group in userprofile.user.groups.all %}<span class="badge bg-primary">{{ group.name }}</span>{% endfor %}
+    <div class="align-items-start gx-md-5">
         {% autoescape off %}
             <p>{{ userprofile.bio|linebreaks }}</p>
         {% endautoescape %}

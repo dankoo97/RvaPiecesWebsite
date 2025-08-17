@@ -6,15 +6,15 @@
     {% for coach in coaches %}
         <hr>
         <div class="clearfix">
-            <div class="col-3 float-end ps-3">
+            <h4>{{ coach.first_name }} {{ coach.last_name }}</h4>
+            <div class="col-md-3 float-md-end ps-3 pt-2">
                 {% if coach.userprofile.image %}
                     <img src="{{ coach.userprofile.image.url }}"
                          class="img-fluid rounded-5"
                          alt="{{ coach.first_name }} {{ coach.last_name }}" />
                 {% endif %}
             </div>
-            <div class="align-items-start gx-5 my-5">
-                <h4>{{ coach.first_name }} {{ coach.last_name }}</h4>
+            <div class="align-items-start gx-md-5">
                 {% autoescape off %}
                     <p>{{ coach.userprofile.coaching_description | linebreaks }}</p>
                 {% endautoescape %}
