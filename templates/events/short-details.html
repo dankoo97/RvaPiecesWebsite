@@ -10,11 +10,18 @@
         text-decoration: none;
     }
 </style>
-<div class="row align-items-start gx-5 my-5">
-    <div class="col-8">
-        <h2>
-            <a href="{% url 'event' event.slug %}">{{ event.name }}</a>
-        </h2>
+<div class="clearfix">
+    <h2>
+        <a href="{% url 'event' event.slug %}">{{ event.name }}</a>
+    </h2>
+    {% if event.image %}
+        <div class="container-fluid col-md-3 float-md-end ps-3 py-2">
+            <img src="{{ event.image.url }}"
+                 class="img-fluid rounded-5"
+                 alt="{{ event.name }}" />
+        </div>
+    {% endif %}
+    <div class="align-items-start gx-md-5">
         <p class="location">
             <a href="https://www.google.com/maps/search/{% querystring api=1 query=event.location %}">{{ event.location }}</a>
         </p>
@@ -33,11 +40,4 @@
             <a href="{{ event.tournament_standings_link }}" class="btn btn-primary">Standings</a>
         {% endif %}
     </div>
-    {% if event.image %}
-        <div class="col-3">
-            <img src="{{ event.image.url }}"
-                 class="img-fluid rounded-5"
-                 alt="{{ event.name }}" />
-        </div>
-    {% endif %}
 </div>
