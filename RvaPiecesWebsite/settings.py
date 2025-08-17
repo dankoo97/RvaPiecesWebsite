@@ -12,6 +12,8 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 
 import os
 from pathlib import Path
+from google.auth import impersonated_credentials
+import google.auth
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -126,6 +128,15 @@ AUTH_PASSWORD_VALIDATORS = [
 
 GS_BUCKET_NAME = os.environ.get("GS_BUCKET_NAME")
 if GS_BUCKET_NAME:
+    source_credentials, _ = google.auth.default()
+    target_credentials = impersonated_credentials.Credentials(
+        source_credentials=source_credentials,
+        target_principal=os.environ.get("SIGNER_SERVICE_ACCOUNT"),
+        target_scopes=["https://www.googleapis.com/auth/cloud-platform"],
+        lifetime=500,
+    )
+
+    GS_CREDENTIALS = target_credentials
     STORAGES = {
         "default": {
             "BACKEND": "storages.backends.gcloud.GoogleCloudStorage",
