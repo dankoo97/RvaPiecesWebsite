@@ -20,10 +20,13 @@ class EventView(generic.DetailView):
     template_name = "events/event-details.html"
 
     def get_context_data(self, **kwargs):
-        # Recalculate the calendar
-        self.object.calendar.save()
+        next_event = None
+        if self.object.calendar:
+            # Recalculate the calendar
+            self.object.calendar.save()
+            next_event = self.object.calendar.next_occurrence
         return {
-            "next_event": self.object.calendar.next_occurrence,
+            "next_event": next_event,
             "event": self.object,
             **kwargs,
         }

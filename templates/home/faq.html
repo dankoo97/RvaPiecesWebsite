@@ -19,7 +19,7 @@
             If you’d like to connect with other beginners, come visit one of our
             <a href="https://rvapieces.org/schedule/#beginners-only">Beginners Only meetups</a>,
             held every other week. Starting November, we’ll be relaunching our free
-            <a href="https://rvapieces.org/schedule/#beginner-classes">beginner classes</a>.
+            <a href="{% url 'event' 'beginner-classes' %}">beginner classes</a>.
             But again, even if you’re new to the game, you’re absolutely welcome at all of our events.
         </p>
     </div>
@@ -32,7 +32,7 @@
             you’re probably not a beginner.
         </p>
         <p>
-            Our <a href="https://rvapieces.org/schedule/#beginner-classes">classes</a> at the library (relaunching in
+            Our <a href="{% url 'event' 'beginner-classes' %}">classes</a> at the library (relaunching in
             November) are targeted for beginners. However, you’re welcome to join even if you’re not a beginner. On the
             other hand, our <a href="https://rvapieces.org/schedule/#beginners-only">Beginners Only meetups</a> are
             intended only for beginners. On <a href="{% discord_invite %}">Discord</a>, the #beginners-only
@@ -57,10 +57,10 @@
         <h4>Do I need to preregister for events?</h4>
         <p>
             It depends on the event. There’s no need to register for our casual game nights, Monroe Park, or beginner
-            classes. For our <a href="https://rvapieces.org/schedule/#rated-ladder">USCF rated ladder</a>, we encourage
+            classes. For our <a href="{% url 'event' 'uscf-rated-ladder' %}">USCF rated ladder</a>, we encourage
             you to <a href="{% chessnut_page %}/events">preregister</a> online, but you can also register
             in person. If you plan to come out to
-            <a href="https://rvapieces.org/schedule/#backyard-blitz">Backyard Blitz</a>, DM
+            <a href="{% url 'event' 'backyard-blitz' %}">Backyard Blitz</a>, DM
             <strong>@Spenser (the only Spenser)</strong> on <a href="{% discord_invite %}">Discord</a> or
             message us on <a href="{% instagram_page %}">Instagram</a>, even if you’ve been before and
             have the address.
@@ -107,13 +107,13 @@
         <h4>I’ve heard about touch/move before. Do I have to move a piece if I touch it?</h4>
         <p>
             If you’re playing an unofficial game, even during a
-            <a href="https://rvapieces.org/schedule/#backyard-blitz">Backyard Blitz</a> tournament, then the touch/move
+            <a href="{% url 'event' 'backyard-blitz' %}">Backyard Blitz</a> tournament, then the touch/move
             rule does <em><strong>not</strong></em> apply. A player’s move is over once they hit the clock. Be careful
             though! If you’re playing a blitz (AKA fast) game, and you don’t notice that your king is in check when you
             hit the clock, club rules say that your opponent has the right to capture your king. 💀
         </p>
         <p>
-            Our biweekly <a href="https://rvapieces.org/schedule/#rated-ladder">USCF rated ladder</a> is an official
+            Our biweekly <a href="{% url 'event' 'rated-ladder' %}">USCF rated ladder</a> is an official
             tournament, and in that setting, touch/move <strong><em>does</em></strong> apply. If you touch a piece, and
             you can legally move it, then you must do so.
         </p>
@@ -122,7 +122,7 @@
         <h4>Does RVA Pieces offer lessons?</h4>
         <p>
             Yes! Starting November, we’ll be relaunching our
-            <a href="https://rvapieces.org/schedule/#beginner-classes">beginner classes</a> at the library. If you’d
+            <a href="{% url 'event' 'beginner-classes' %}">beginner classes</a> at the library. If you’d
             like to work with a coach one-on-one, you can get in touch with one of the
             <a href="{% url 'private_coaching' %}">chess coaches</a> we recommend.
         </p>

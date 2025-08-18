@@ -23,10 +23,12 @@
 <style>
     {% for event in events %}
         .{{ event.slug }}-mobile {
-            background-image: url({{ event.icon.url|safe }});
-            background-size: contain;
-            background-repeat: no-repeat;
-            background-position: center;
+            {% if event.icon %}
+                background-image: url({{ event.icon.url|safe }});
+                background-size: contain;
+                background-repeat: no-repeat;
+                background-position: center;
+            {% endif %}
             width: 3em;
             height: 3em;
             display: block;

@@ -26,9 +26,9 @@
             <a href="https://www.google.com/maps/search/{% querystring api=1 query=event.location %}">{{ event.location }}</a>
         </p>
         <p>{{ event.short_description }}</p>
-        <p>
-            <a href="https://google.com/calendar/event{% querystring eid=event.event_id %}">Add to your calendar</a>
-        </p>
+        {#        <p>#}
+        {#            <a href="https://google.com/calendar/event{% querystring eid=event.event_id %}">Add to your calendar</a>#}
+        {#        </p>#}
         {# Tournament link if event is tournament #}
         {% if event.tournament_event_link %}
             <a href="{{ event.tournament_event_link }}" class="btn btn-primary">Tournament</a>
