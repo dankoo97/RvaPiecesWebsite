@@ -1,5 +1,7 @@
 {% extends "template.html" %}
+{% load static %}
 {% block content %}
+    <link rel="stylesheet" href="{% static 'styles/events.css' %}">
     <p>
         Below, you can find which upcoming dates we’re planning to meet. It’s not common that we cancel an event, but if we do, we’ll mark it here.
     </p>
@@ -13,9 +15,6 @@
             </div>
         {% endautoescape %}
     {% endfor %}
-    {% comment %}
-        TODO: make 2 different calendars w/ monthly for desktop/tablet and w/schedule for mobile
-    {% endcomment %}
     {% include "events/calendar.html" %}
     {% include "events/list.html" with events=events %}
 {% endblock content %}

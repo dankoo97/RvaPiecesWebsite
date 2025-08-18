@@ -13,6 +13,7 @@ class BoardManager(models.Manager):
         "Photographer",
         "Web Admin",
         "Board",
+        "Volunteer",
     ]
 
     def get_queryset(self):

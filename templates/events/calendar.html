@@ -23,43 +23,47 @@
 <style>
     {% for event in events %}
         .{{ event.slug }}-mobile {
-            {% if event.icon %}
-                background-image: url({{ event.icon.url|safe }});
-                background-size: contain;
-                background-repeat: no-repeat;
-                background-position: center;
-            {% endif %}
-            width: 3em;
-            height: 3em;
-            display: block;
+            a {
+                text-decoration: none;
+                color: inherit;
+            }
+
+            .icon {
+                {% if event.icon %}
+                    background-image: url({{ event.icon.url|safe }});
+                    background-size: contain;
+                    background-repeat: no-repeat;
+                    background-position: center;
+                {% endif %}
+                width: 3em;
+                height: 3em;
+                display: block;
+            }
         }
     {% endfor %}
-
-    a {
-        text-decoration: none;
-        color: inherit;
-    }
 </style>
 <div class="container d-block d-md-none">
     <h4>{{ curr_day | date:"F Y" }}</h4>
     {% for day in event_instances|sorted_keys %}
-        {% for instance in event_instances|get_val:day %}
-            <a href="{% url 'event' instance.event.slug %}">
-                <div class="row py-2 gy-0 align-items-center bg-{% cycle "dark" "secondary" as style_color %} bg-gradient text-white">
-                    <div class="col-1">
-                        <span class="text-center">{{ day|date:"d" }}</span>
+        {% for instance in event_instances|get_val:day|dictsort:"start_time" %}
+            <div class="{{ instance.event.slug }}-mobile">
+                <a href="{% url 'event' instance.event.slug %}">
+                    <div class="row py-2 gy-0 align-items-center bg-{% cycle "dark" "secondary" as style_color %} bg-gradient text-white">
+                        <div class="col-1">
+                            <span class="text-center">{{ day|date:"d" }}</span>
+                        </div>
+                        <div class="col-2">
+                            <span class="icon"></span>
+                        </div>
+                        <div class="col-6">
+                            <span>{{ instance.event.name }}</span>
+                        </div>
+                        <div class="col-3">
+                            <span>{{ instance.start_time|time:"g:i a" }}</span>
+                        </div>
                     </div>
-                    <div class="col-2">
-                        <span class="{{ instance.event.slug }}-mobile"></span>
-                    </div>
-                    <div class="col-6">
-                        <span>{{ instance.event.name }}</span>
-                    </div>
-                    <div class="col-3">
-                        <span>{{ instance.start_time|time:"g:i a" }}</span>
-                    </div>
-                </div>
-            </a>
+                </a>
+            </div>
         {% endfor %}
     {% endfor %}
 </div>

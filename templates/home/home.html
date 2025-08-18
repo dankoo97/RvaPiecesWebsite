@@ -1,13 +1,7 @@
-<style>
-    .carousel-caption {
-        background-color: rgba(0, 0, 0, 0.5);
-        border-radius: 10px;
-        padding: 10px;
-    }
-</style>
 {% extends "template.html" %}
 {% load static %}
 {% block content %}
+    <link rel="stylesheet" href="{% static 'styles/home.css' %}">
     <div class="clearfix">
         <div class="col-md-5 float-md-end ps-3 pt-2">
             <img src="{% static 'images/monroe_park-edited.jpg' %}"

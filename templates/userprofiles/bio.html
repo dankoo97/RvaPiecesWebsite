@@ -1,8 +1,3 @@
-<style>
-    .discord-icon {
-        color: #7289da;
-    }
-</style>
 <div class="clearfix" id="{{ userprofile.user.username }}">
     <h4>{{ userprofile.user.first_name }} {{ userprofile.user.last_name }}</h4>
     {% for group in userprofile.user.groups.all %}<span class="badge bg-primary mx-1">{{ group.name }}</span>{% endfor %}

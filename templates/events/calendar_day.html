@@ -1,12 +1,3 @@
-<style>
-    .calendar-day {
-        height: 10em;
-    }
-
-    .calendar-day figure * {
-        max-height: 5em;
-    }
-</style>
 <div class="col border border-dark {% if day == curr_day %}bg-info-subtle{% endif %} calendar-day">
     <p class="text-start">
         {% if day.month == curr_day.month %}{{ day | date:"j" }}{% endif %}

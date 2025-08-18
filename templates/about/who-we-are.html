@@ -1,12 +1,14 @@
 {% extends "template.html" %}
+{% load static %}
 {% load board %}
 {% block content %}
+    <link rel="stylesheet" href="{% static 'styles/bio.css' %}">
     <h2>Board Members and Volunteers</h2>
     <p>
         RVA Pieces is guided by our board members based on input from the community. Below, you can find a list of our
         current board members and other core volunteers:
     </p>
-    {% for userprofile in board|sort_board %}
+    {% for userprofile in board_and_volunteers|sort_board %}
         <hr>
         {% include "userprofiles/bio.html" with userprofile=userprofile %}
     {% endfor %}

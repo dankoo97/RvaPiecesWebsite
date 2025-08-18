@@ -1,3 +1,4 @@
+from django.db.models import Q
 from django.shortcuts import render
 from userprofile.models import UserProfile
 
@@ -6,8 +7,12 @@ from userprofile.models import UserProfile
 
 
 def who_we_are(request):
-    board = UserProfile.board.all()
-    return render(request, "about/who-we-are.html", {"board": board})
+    board_and_volunteers = UserProfile.objects.filter(
+        Q(user__groups__name="Board") | Q(user__groups__name="Volunteer")
+    )
+    return render(
+        request, "about/who-we-are.html", {"board_and_volunteers": board_and_volunteers}
+    )
 
 
 def code_of_conduct(request):
