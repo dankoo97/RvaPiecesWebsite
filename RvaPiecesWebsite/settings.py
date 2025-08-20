@@ -54,6 +54,8 @@ INSTALLED_APPS = [
     "recurring",
     "storages",
     "corsheaders",
+    "django_bootstrap5",
+    "django_sass",
 ]
 
 MIDDLEWARE = [

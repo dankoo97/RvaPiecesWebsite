@@ -14,6 +14,8 @@ django-recurring = "*"
 django-storages = {extras = ["google"], version = "*"}
 django-cors-headers = "*"
 cloud-sql-python-connector = {extras = ["pg8000"], version = "*"}
+django-sass = "*"
+django-bootstrap5 = "*"
 
 [dev-packages]
 ruff = "*"

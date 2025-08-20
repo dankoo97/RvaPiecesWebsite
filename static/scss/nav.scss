@@ -1,0 +1,12 @@
+.nav-item.dropdown:hover .dropdown-menu {
+    display: block;
+}
+
+.dropdown-menu {
+    margin-top: 0;
+    transition: all 0.2s;
+}
+
+nav {
+    font-size: 1.2rem;
+}

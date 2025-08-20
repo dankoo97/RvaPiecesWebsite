@@ -1,21 +1,23 @@
-<div class="col border border-dark {% if day == curr_day %}bg-info-subtle{% endif %} calendar-day">
-    <p class="text-start">
-        {% if day.month == curr_day.month %}{{ day | date:"j" }}{% endif %}
-    </p>
+<div class="col border p-1 h-auto d-flex flex-column border-dark {% if day == curr_day %}bg-info-subtle{% endif %} calendar-day">
+    <span class="text-start calendar-day-number">
+        {% if day.month == curr_month %}{{ day | date:"j" }}{% endif %}
+    </span>
     {% for event_instance in schedule %}
-        <figure class="figure row">
-            <a href="{% url 'event' event_instance.event.slug %}">
-                {% if event_instance.event.icon %}
-                    <img class="figure-img img-fluid justify-content-center"
-                         src="{{ event_instance.event.icon.url }}"
-                         alt="{{ event_instance.event.name }}">
-                {% else %}
-                    <p>
-                        <b>{{ event_instance.event.name }}</b>
-                    </p>
-                {% endif %}
-            </a>
-            <span class="figure-caption align-bottom text-center">{{ event_instance.start_time|time:"g:i a" }}</span>
-        </figure>
+        {% if day.month == curr_month %}
+            <figure class="figure align-center">
+                <a href="{% url 'event' event_instance.event.slug %}">
+                    {% if event_instance.event.icon %}
+                        <img class="figure-img img-fluid justify-content-center"
+                             src="{{ event_instance.event.icon.url }}"
+                             alt="{{ event_instance.event.name }}">
+                    {% else %}
+                        <p>
+                            <b>{{ event_instance.event.name }}</b>
+                        </p>
+                    {% endif %}
+                </a>
+                <span class="figure-caption align-bottom text-center d-none d-md-block">{{ event_instance.start_time|time:"g:i a" }}</span>
+            </figure>
+        {% endif %}
     {% endfor %}
 </div>

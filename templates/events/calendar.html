@@ -1,18 +1,20 @@
 {% load dict_helper %}
 {# Desktop #}
-<div class="container mx-auto py-5 px-5 text-center calendar d-none d-md-block">
-    <h4>{{ curr_day | date:"F Y" }}</h4>
-    <div class="row flex-nowrap justify-content-center">
+<div class="m-auto py-5 px-md-5 text-center calendar grid">
+    <div class="row">
+        {#        <button class="col" onclick="changeMonth(-1)">Previous</button>#}
+        <h4 class="col text-center">{{ curr_day | date:"F Y" }}</h4>
+        {#        <button class="col" onclick="changeMonth(1)">Next</button>#}
+    </div>
+    <div class="row d-flex flex-nowrap text-center g-0 fw-bold">
         {% for weekday in weekdays %}
-            <div class="col border border-dark">
-                <h5 class="text-center">
-                    <b>{{ weekday | upper }}</b>
-                </h5>
+            <div class="col border border-dark d-flex flex-column">
+                <span>{{ weekday | upper }}</span>
             </div>
         {% endfor %}
     </div>
     {% for week in month %}
-        <div class="row flex-nowrap justify-content-center">
+        <div class="row d-flex flex-nowrap text-center g-0">
             {% for day in week %}
                 {% include "events/calendar_day.html" with schedule=event_instances|get_val:day %}
             {% endfor %}
@@ -20,50 +22,50 @@
     {% endfor %}
 </div>
 {# Mobile #}
-<style>
-    {% for event in events %}
-        .{{ event.slug }}-mobile {
-            a {
-                text-decoration: none;
-                color: inherit;
-            }
-
-            .icon {
-                {% if event.icon %}
-                    background-image: url({{ event.icon.url|safe }});
-                    background-size: contain;
-                    background-repeat: no-repeat;
-                    background-position: center;
-                {% endif %}
-                width: 3em;
-                height: 3em;
-                display: block;
-            }
-        }
-    {% endfor %}
-</style>
-<div class="container d-block d-md-none">
-    <h4>{{ curr_day | date:"F Y" }}</h4>
-    {% for day in event_instances|sorted_keys %}
-        {% for instance in event_instances|get_val:day|dictsort:"start_time" %}
-            <div class="{{ instance.event.slug }}-mobile">
-                <a href="{% url 'event' instance.event.slug %}">
-                    <div class="row py-2 gy-0 align-items-center bg-{% cycle "dark" "secondary" as style_color %} bg-gradient text-white">
-                        <div class="col-1">
-                            <span class="text-center">{{ day|date:"d" }}</span>
-                        </div>
-                        <div class="col-2">
-                            <span class="icon"></span>
-                        </div>
-                        <div class="col-6">
-                            <span>{{ instance.event.name }}</span>
-                        </div>
-                        <div class="col-3">
-                            <span>{{ instance.start_time|time:"g:i a" }}</span>
-                        </div>
-                    </div>
-                </a>
-            </div>
-        {% endfor %}
-    {% endfor %}
-</div>
+{#<style>#}
+{#    {% for event in events %}#}
+{#        .{{ event.slug }}-mobile {#}
+{#            a {#}
+{#                text-decoration: none;#}
+{#                color: inherit;#}
+{#            }#}
+{##}
+{#            .icon {#}
+{#                {% if event.icon %}#}
+{#                    background-image: url({{ event.icon.url|safe }});#}
+{#                    background-size: contain;#}
+{#                    background-repeat: no-repeat;#}
+{#                    background-position: center;#}
+{#                {% endif %}#}
+{#                width: 3em;#}
+{#                height: 3em;#}
+{#                display: block;#}
+{#            }#}
+{#        }#}
+{#    {% endfor %}#}
+{#</style>#}
+{#<div class="container d-block d-md-none">#}
+{#    <h4>{{ curr_day | date:"F Y" }}</h4>#}
+{#    {% for day in event_instances|sorted_keys %}#}
+{#        {% for instance in event_instances|get_val:day|dictsort:"start_time" %}#}
+{#            <div class="{{ instance.event.slug }}-mobile">#}
+{#                <a href="{% url 'event' instance.event.slug %}">#}
+{#                    <div class="row py-2 gy-0 align-items-center bg-{% cycle "dark" "secondary" as style_color %} bg-gradient text-white">#}
+{#                        <div class="col-1">#}
+{#                            <span class="text-center">{{ day|date:"d" }}</span>#}
+{#                        </div>#}
+{#                        <div class="col-2">#}
+{#                            <span class="icon"></span>#}
+{#                        </div>#}
+{#                        <div class="col-6">#}
+{#                            <span>{{ instance.event.name }}</span>#}
+{#                        </div>#}
+{#                        <div class="col-3">#}
+{#                            <span>{{ instance.start_time|time:"g:i a" }}</span>#}
+{#                        </div>#}
+{#                    </div>#}
+{#                </a>#}
+{#            </div>#}
+{#        {% endfor %}#}
+{#    {% endfor %}#}
+{#</div>#}

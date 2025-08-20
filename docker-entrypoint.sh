@@ -1,5 +1,8 @@
 #!/bin/bash
 
+echo "Compiling scss into static files"
+python manage.py sass static/scss static/styles -t compressed
+
 # Collect static files
 echo "Collect static files"
 python manage.py collectstatic --noinput
