@@ -49,7 +49,7 @@ def schedule(request):
     for event in Event.objects.all():
         if event.calendar:
             instances = event.calendar.to_rruleset().between(
-                month_start, month_start + datetime.timedelta(days=31), inc=True
+                month_start, month_start + datetime.timedelta(days=90), inc=True
             )
 
             for instance in instances:
@@ -66,10 +66,11 @@ def schedule(request):
         "event_instances": event_instances,
         "events": events,
         "curr_day": curr_datetime.date(),
+        "curr_month": curr_datetime.month,
         "month": list(
             month.monthdatescalendar(curr_datetime.year, curr_datetime.month)
         ),
         "weekdays": [*calendar.day_abbr[-1:], *calendar.day_abbr[:-1]],
-        "announcements": Announcement.objects.all(),
+        "announcements": Announcement.objects.filter(expires__gt=curr_datetime),
     }
     return render(request, "events/schedule.html", context)
