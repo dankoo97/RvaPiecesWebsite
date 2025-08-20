@@ -9,7 +9,7 @@ class BoardManager(models.Manager):
         "Treasurer",
         "Secretary",
         "Club Tournament Director",
-        "Community Outreach Director",
+        "Tournament Director",
         "Photographer",
         "Web Admin",
         "Board",
