@@ -1,3 +1,46 @@
 .discord-icon {
     color: #7289da;
 }
+
+.bio-links {
+
+  .account-label {
+    text-align: center;
+    vertical-align: middle;
+    font-size: 2em;
+  }
+
+  a {
+    text-decoration: none;
+    .username {
+      text-align: left;
+      vertical-align: middle;
+      align-content: center;
+      height: 3em;
+
+      color: black;
+      font-weight: bold;
+    }
+  }
+
+  .icon {
+    background-repeat: no-repeat;
+    background-size: contain;
+    background-position: center;
+    min-width: 4rem;
+    min-height: 3rem;
+    display: inline-block;
+  }
+
+  .chess-com-icon {
+    background-image: url('/static/images/chess_com_icon.png');
+  }
+
+  .lichess-icon {
+    background-image: url('/static/images/lichesslogo.png');
+  }
+
+  .bi-envelope-at-fill {
+    color: #E84F4B;
+  }
+}

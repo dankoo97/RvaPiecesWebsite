@@ -12,30 +12,74 @@
         {% autoescape off %}
             <p>{{ userprofile.bio|linebreaks }}</p>
         {% endautoescape %}
+    </div>
+    <div class="bio-links">
         {% if userprofile.discord %}
-            <p>
-                <i class="bi bi-discord discord-icon"></i> <b>@{{ userprofile.discord }}</b>
-            </p>
+            {#            Discord profiles are based on an 18 digit number, not the user profile name#}
+            <a>
+                <div class="row py-2">
+                    <div class="col-sm-1 account-label">
+                        <i class="bi bi-discord discord-icon"></i>
+                    </div>
+                    <div class="col-sm-9 username">
+                        <span class="align-middle">@{{ userprofile.discord }}</span>
+                    </div>
+                </div>
+            </a>
         {% endif %}
         {% if userprofile.user.email %}
-            <p>
-                Email: <a href="mailto:{{ userprofile.user.email }}">{{ userprofile.user.email }}</a>
-            </p>
+            <a href="mailto:{{ userprofile.user.email }}" target="_blank">
+                <div class="row py-2">
+                    <div class="col-sm-1 account-label">
+                        <i class="bi bi-envelope-at-fill"></i>
+                    </div>
+                    <div class="col-sm-9 username">
+                        <span class="align-middle">{{ userprofile.user.email }}</span>
+                    </div>
+                </div>
+            </a>
         {% endif %}
         {% if userprofile.chess_com %}
-            <p>
-                Chess.com: <b>{{ userprofile.chess_com }}</b>
-            </p>
+            <a href="https://www.chess.com/member/{{ userprofile.chess_com }}"
+               target="_blank">
+                <div class="row py-2">
+                    <div class="col-sm-1 account-label">
+                        <span class="icon chess-com-icon"></span>
+                    </div>
+                    <div class="col-sm-9 username">
+                        <span class="align-middle">{{ userprofile.chess_com }}</span>
+                    </div>
+                </div>
+            </a>
         {% endif %}
         {% if userprofile.lichess %}
-            <p>
-                Lichess: <b>{{ userprofile.lichess }}</b>
-            </p>
+            <a href="https://lichess.org/@/{{ userprofile.lichess }}"
+               target="_blank">
+                <div class="row py-2">
+                    <div class="col-sm-1 account-label">
+                        <span class="icon lichess-icon"></span>
+                    </div>
+                    <div class="col-sm-9 username">
+                        <span class="align-middle">{{ userprofile.lichess }}</span>
+                    </div>
+                </div>
+            </a>
         {% endif %}
         {% for key, value in userprofile.other_links.items %}
-            <p>
-                {{ key }}: <b>{{ value }}</b>
-            </p>
+            {% if value.profile_url %}<a href="{{ value.profile_url }}" target="_blank">{% endif %}
+                <div class="row py-2">
+                    <div class="col-sm-1 account-label">
+                        {% if value.icon %}
+                            <span class="icon" style="background-image: url('{{ value.icon }}');"></span>
+                        {% else %}
+                            <span>{{ key }}</span>
+                        {% endif %}
+                    </div>
+                    <div class="col-sm-9 username">
+                        <span class="align-middle">{{ value.username }}</span>
+                    </div>
+                </div>
+                {% if value.profile_url %}</a>{% endif %}
         {% endfor %}
     </div>
 </div>
