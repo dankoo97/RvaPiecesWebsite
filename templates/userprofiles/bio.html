@@ -1,3 +1,4 @@
+{% load bootstrap_icons %}
 <div class="clearfix" id="{{ userprofile.user.username }}">
     <h4>{{ userprofile.user.first_name }} {{ userprofile.user.last_name }}</h4>
     {% for group in userprofile.user.groups.all %}<span class="badge bg-primary mx-1">{{ group.name }}</span>{% endfor %}
@@ -15,12 +16,10 @@
     </div>
     <div class="bio-links">
         {% if userprofile.discord %}
-            {#            Discord profiles are based on an 18 digit number, not the user profile name#}
+            {# Discord profiles are based on an 18 digit number, not the user profile name #}
             <a>
                 <div class="row py-2">
-                    <div class="col-1 account-label me-5 me-sm-2">
-                        <i class="icon bi bi-discord discord-icon"></i>
-                    </div>
+                    <div class="col-1 account-label me-5 me-sm-2">{% bs_icon 'discord' extra_classes='discord-icon icon' %}</div>
                     <div class="col-auto username">
                         <span class="align-middle">@{{ userprofile.discord }}</span>
                     </div>
@@ -30,9 +29,7 @@
         {% if userprofile.user.email %}
             <a href="mailto:{{ userprofile.user.email }}" target="_blank">
                 <div class="row py-2">
-                    <div class="col-1 account-label me-5 me-md-2">
-                        <i class="icon bi bi-envelope-at-fill"></i>
-                    </div>
+                    <div class="col-1 account-label me-5 me-md-2">{% bs_icon 'envelope-at-fill' extra_classes='icon' %}</div>
                     <div class="col-auto username">
                         <span class="align-middle">{{ userprofile.user.email }}</span>
                     </div>
@@ -43,9 +40,7 @@
             <a href="https://www.chess.com/member/{{ userprofile.chess_com }}"
                target="_blank">
                 <div class="row py-2">
-                    <div class="col-1 account-label me-5 me-md-2">
-                        <span class="icon chess-com-icon"></span>
-                    </div>
+                    <div class="col-1 account-label me-5 me-md-2">{% custom_icon 'chess-com' extra_classes='icon' %}</div>
                     <div class="col-auto username">
                         <span class="align-middle">{{ userprofile.chess_com }}</span>
                     </div>
@@ -56,9 +51,7 @@
             <a href="https://lichess.org/@/{{ userprofile.lichess }}"
                target="_blank">
                 <div class="row py-2">
-                    <div class="col-1 account-label me-5 me-md-2">
-                        <span class="icon lichess-icon"></span>
-                    </div>
+                    <div class="col-1 account-label me-5 me-md-2">{% custom_icon 'lichess' extra_classes='icon' %}</div>
                     <div class="col-auto username">
                         <span class="align-middle">{{ userprofile.lichess }}</span>
                     </div>
@@ -72,7 +65,7 @@
                         {% if value.icon %}
                             <span class="icon" style="background-image: url('{{ value.icon }}');"></span>
                         {% else %}
-                            <span>{{ key }}</span>
+                            {% bs_icon 'globe2' extra_classes='icon' %}
                         {% endif %}
                     </div>
                     <div class="col-auto username">

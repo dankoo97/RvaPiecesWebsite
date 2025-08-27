@@ -1,5 +1,6 @@
 {% extends "template.html" %}
 {% load static %}
+{% load bootstrap_icons %}
 {% block content %}
     <link rel="stylesheet" href="{% static 'styles/events.css' %}">
     <p>
@@ -10,9 +11,7 @@
     </p>
     {% for announcement in announcements %}
         {% autoescape off %}
-            <div class="container">
-                <i class="bi bi-exclamation-lg text-danger"></i>{{ announcement.content }}
-            </div>
+            <div class="container">{% bs_icon 'exclamation-lg' extra_classes="text-danger" %}{{ announcement.content }}</div>
         {% endautoescape %}
     {% endfor %}
     {% include "events/calendar.html" %}

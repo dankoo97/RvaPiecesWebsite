@@ -55,6 +55,7 @@ INSTALLED_APPS = [
     "storages",
     "corsheaders",
     "django_bootstrap5",
+    "django_bootstrap_icons",
     "django_sass",
 ]
 
@@ -178,6 +179,7 @@ STATICFILES_DIRS = [
     BASE_DIR / "static",
 ]
 STATIC_ROOT = BASE_DIR / "staticfiles"
+BS_ICONS_CUSTOM_PATH = BASE_DIR / "static/icons"
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
