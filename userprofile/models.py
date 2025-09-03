@@ -1,6 +1,8 @@
 from django.db import models
 from django_ckeditor_5.fields import CKEditor5Field
 
+from helpers.models import PrettyJSONEncoder
+
 
 # Create your models here.
 class BoardManager(models.Manager):
@@ -28,7 +30,20 @@ class UserProfile(models.Model):
     discord = models.CharField(max_length=50, blank=True)
     chess_com = models.CharField(max_length=50, blank=True)
     lichess = models.CharField(max_length=50, blank=True)
-    other_links = models.JSONField(default=dict, blank=True)
+    other_links = models.JSONField(
+        default=dict,
+        blank=True,
+        encoder=PrettyJSONEncoder,
+        help_text="""
+<pre><code>{
+    "website_name": {
+        "username": "my_username",
+        "profile_url": "a_link_to_my_profile",
+        "icon": "a_link_to_an_image_for_the_website"
+    },
+    ...
+}</code></pre>""",
+    )
 
     image = models.ImageField(upload_to="media/images/profile_images/", blank=True)
 

@@ -1,13 +1,14 @@
 {% load social_media_tags %}
+{% load bootstrap_icons %}
 <li class="nav-item">
-    <a class="nav-link" href="{% instagram_page %}"><i class="bi bi-instagram"></i></a>
+    <a class="nav-link" href="{% instagram_page %}">{% bs_icon 'instagram' %}</a>
 </li>
 <li class="nav-item">
-    <a class="nav-link" href="{% facebook_page %}"><i class="bi bi-facebook"></i></a>
+    <a class="nav-link" href="{% facebook_page %}">{% bs_icon 'facebook' %}</a>
 </li>
 <li class="nav-item">
-    <a class="nav-link" href="{% venmo_page %}">Venmo</a>
+    <a class="nav-link" href="{% venmo_page %}">{% custom_icon 'venmo' %}</a>
 </li>
 <li class="nav-item">
-    <a class="nav-link" href="{% discord_invite %}"><i class="bi bi-discord"></i></a>
+    <a class="nav-link" href="{% discord_invite %}">{% bs_icon 'discord' %}</a>
 </li>
