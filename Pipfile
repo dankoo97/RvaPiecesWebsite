@@ -16,6 +16,7 @@ django-cors-headers = "*"
 cloud-sql-python-connector = {extras = ["pg8000"], version = "*"}
 django-sass = "*"
 django-bootstrap5 = "*"
+django-bootstrap-icons = "*"
 
 [dev-packages]
 ruff = "*"
