@@ -54,7 +54,7 @@ def schedule(request):
     for event in events:
         if event.calendar:
             instances = event.calendar.to_rruleset().between(
-                month_start, month_start + datetime.timedelta(days=90), inc=True
+                month_start, month_start + datetime.timedelta(days=70), inc=True
             )
 
             for instance in instances:
@@ -71,10 +71,23 @@ def schedule(request):
         "event_instances": event_instances,
         "events": events,
         "curr_day": curr_datetime.date(),
-        "curr_month": curr_datetime.month,
-        "month": list(
-            month.monthdatescalendar(curr_datetime.year, curr_datetime.month)
-        ),
+        "curr_month": {
+            "datetime": curr_datetime,
+            "calendar": list(
+                month.monthdatescalendar(curr_datetime.year, curr_datetime.month)
+            ),
+        },
+        "next_month": {
+            "datetime": month_start + datetime.timedelta(days=32),
+            "calendar": list(
+                month.monthdatescalendar(
+                    curr_datetime.year,
+                    curr_datetime.month + 1 if curr_datetime.month < 12 else 1,
+                )
+            ),
+        }
+        if curr_datetime.day >= 15
+        else None,
         "weekdays": [*calendar.day_abbr[-1:], *calendar.day_abbr[:-1]],
         "announcements": Announcement.objects.filter(expires__gt=curr_datetime),
     }

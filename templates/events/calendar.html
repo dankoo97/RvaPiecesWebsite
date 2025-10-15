@@ -2,9 +2,7 @@
 {# Desktop #}
 <div class="m-auto py-5 px-md-5 text-center calendar grid">
     <div class="row">
-        {#        <button class="col" onclick="changeMonth(-1)">Previous</button>#}
-        <h4 class="col text-center">{{ curr_day | date:"F Y" }}</h4>
-        {#        <button class="col" onclick="changeMonth(1)">Next</button>#}
+        <h4 class="col text-center">{{ datetime | date:"F Y" }}</h4>
     </div>
     <div class="row d-flex flex-nowrap text-center g-0 fw-bold">
         {% for weekday in weekdays %}
