@@ -31,6 +31,11 @@ class EventView(generic.DetailView):
             **kwargs,
         }
 
+    def get_queryset(self):
+        if self.request.user.is_staff or self.request.user.is_superuser:
+            return Event.objects.all()
+        return Event.objects.public()
+
 
 def schedule(request):
     curr_datetime = datetime.datetime.now(tz=ZoneInfo("US/Eastern"))
@@ -43,10 +48,10 @@ def schedule(request):
     month = calendar.Calendar()
     month.setfirstweekday(calendar.SUNDAY)
 
-    events = Event.objects.filter(is_archived=False)
+    events = Event.objects.public()
 
     event_instances = defaultdict(list)
-    for event in Event.objects.all():
+    for event in events:
         if event.calendar:
             instances = event.calendar.to_rruleset().between(
                 month_start, month_start + datetime.timedelta(days=90), inc=True
