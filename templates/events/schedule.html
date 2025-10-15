@@ -2,7 +2,8 @@
 {% load static %}
 {% load bootstrap_icons %}
 {% block content %}
-    <link rel="stylesheet" href="{% static 'styles/events.css' %}">
+    <link rel="stylesheet" href="{% static 'styles/schedule.css' %}">
+    <link rel="stylesheet" href="{% static 'styles/event-details.css' %}">
     <p>
         Below, you can find which upcoming dates we’re planning to meet. It’s not common that we cancel an event, but if we do, we’ll mark it here.
     </p>
@@ -14,6 +15,9 @@
             <div class="container">{% bs_icon 'exclamation-lg' extra_classes="text-danger" %}{{ announcement.content }}</div>
         {% endautoescape %}
     {% endfor %}
-    {% include "events/calendar.html" %}
+    {% include "events/calendar.html" with month=curr_month.calendar datetime=curr_month.datetime event_instances=event_instances %}
+    {% if next_month %}
+        {% include "events/calendar.html" with month=next_month.calendar datetime=next_month.datetime event_instances=event_instances %}
+    {% endif %}
     {% include "events/list.html" with events=events %}
 {% endblock content %}

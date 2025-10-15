@@ -1,7 +1,15 @@
 <div class="clearfix">
-    <h2 class="event-header">
-        <a href="{% url 'event' event.slug %}">{{ event.name }}</a>
-    </h2>
+    <div class="event-header">
+        <a href="{% url 'event' event.slug %}">
+            <div class="row align-items-center">
+                <img class="img-fluid col-auto event-icon"
+                     style="height: 4rem"
+                     src="{{ event.icon.url }}"
+                     alt="{{ event.name }}">
+                <h2 class="col-10 text-start">{{ event.name }}</h2>
+            </div>
+        </a>
+    </div>
     {% if event.image %}
         <div class="container-fluid col-md-3 float-md-end ps-3 py-2">
             <img src="{{ event.image.url }}"
@@ -9,7 +17,7 @@
                  alt="{{ event.name }}" />
         </div>
     {% endif %}
-    <div class="align-items-start gx-md-5">
+    <div class="align-items-start gx-md-5 pt-4">
         <p class="location">
             <a href="https://www.google.com/maps/search/{% querystring api=1 query=event.location %}">{{ event.location }}</a>
         </p>

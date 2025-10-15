@@ -1,7 +1,32 @@
 {% extends "template.html" %}
+{% load static bootstrap_icons %}
 {% block content %}
+    {% if not event.is_published %}
+        <script type="text/javascript">
+            document.addEventListener("DOMContentLoaded", function () {
+                const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
+                tooltipTriggerList.forEach(function (tooltipTriggerEl) {
+                    new bootstrap.Tooltip(tooltipTriggerEl)
+                })
+            });
+        </script>
+    {% endif %}
+    <link rel="stylesheet" href="{% static 'styles/event-details.css' %}">
     <div class="clearfix">
-        <h2>{{ event.name }}</h2>
+        <div class="row align-items-center event-header">
+            <img class="img-fluid col-auto event-icon"
+                 style="height: 4rem"
+                 src="{{ event.icon.url }}"
+                 alt="{{ event.name }}">
+            <h2 class="col text-start">
+                {{ event.name }}
+                {% if not event.is_published %}
+                    <i class="bi bi-eye-slash"
+                       data-bs-toggle="tooltip"
+                       title="This event is not published"></i>
+                {% endif %}
+            </h2>
+        </div>
         {% if event.image %}
             <div class="container-fluid col-md-5 float-md-end ps-3 pt-2">
                 <img src="{{ event.image.url }}"
@@ -9,8 +34,8 @@
                      alt="{{ event.name }}" />
             </div>
         {% endif %}
-        <div class="align-items-start gx-md-5">
-            <p>
+        <div class="align-items-start gx-md-5 py-4">
+            <p class="location">
                 <a href="https://www.google.com/maps/search/{% querystring api=1 query=event.location %}">{{ event.location }}</a>
             </p>
             {% if event.long_description|length > 0 %}

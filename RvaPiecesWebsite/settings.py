@@ -187,6 +187,7 @@ BS_ICONS_CUSTOM_PATH = BASE_DIR / "static/icons"
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 GOOGLE_TOKEN_FILE = os.environ.get("GOOGLE_TOKEN_FILE")
+DONATION_LINK = os.environ.get("DONATION_LINK")
 
 customColorPalette = [
     {"color": "hsl(4, 90%, 58%)", "label": "Red"},

@@ -1,9 +1,9 @@
 <div class="col border p-1 h-auto d-flex flex-column border-dark {% if day == curr_day %}bg-info-subtle{% endif %} calendar-day">
     <span class="text-start calendar-day-number">
-        {% if day.month == curr_month %}{{ day | date:"j" }}{% endif %}
+        {% if day.month == datetime.month %}{{ day | date:"j" }}{% endif %}
     </span>
     {% for event_instance in schedule %}
-        {% if day.month == curr_month %}
+        {% if day.month == datetime.month %}
             <figure class="figure align-center">
                 <a href="{% url 'event' event_instance.event.slug %}">
                     {% if event_instance.event.icon %}
