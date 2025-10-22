@@ -20,6 +20,7 @@ class EventManager(models.Manager):
 
 
 CHESSNUT_CLUB_ID = os.environ.get("CHESSNUT_CLUB_ID")
+CACHE_TIMEOUT = 60 * 60 * 24
 
 
 # Create your models here.
@@ -58,7 +59,8 @@ class Event(models.Model):
 
     objects = EventManager()
 
-    all_chessnut_events = None
+    chessnut_events_cache = None
+    last_cache_timestamp = None
 
     def __str__(self):
         if self.is_archived:
@@ -136,12 +138,18 @@ class Event(models.Model):
 
     @property
     def chessnut_events(self):
-        if self.all_chessnut_events is None:
+        if (
+            self.chessnut_events_cache is None
+            or self.last_cache_timestamp is None
+            or self.last_cache_timestamp + datetime.timedelta(seconds=CACHE_TIMEOUT)
+            < datetime.datetime.now()
+        ):
             self.get_all_chessnut_events()
+
         # Match events to the event name and filter out events that are not within 7 days of the event and are not within 45 days of now
         return [
             event
-            for event in Event.all_chessnut_events
+            for event in Event.chessnut_events_cache
             if event["name"].startswith(self.name)
             and datetime.date.today() - datetime.timedelta(days=7)
             < event["start_date"].date()
@@ -150,7 +158,8 @@ class Event(models.Model):
 
     @staticmethod
     def invalidate_chessnut_events_cache():
-        Event.all_chessnut_events = None
+        Event.chessnut_events_cache = None
+        Event.last_cache_timestamp = None
 
     @staticmethod
     def get_all_chessnut_events():
@@ -176,9 +185,12 @@ class Event(models.Model):
                     dct[k] = datetime.datetime.fromisoformat(v[:-1])
             return dct
 
-        Event.all_chessnut_events = response.json(object_hook=datetime_parser)["events"]
+        Event.chessnut_events_cache = response.json(object_hook=datetime_parser)[
+            "events"
+        ]
+        Event.last_cached_chessnut_events = datetime.datetime.now()
         print("Fetched chessnut events")
-        return Event.all_chessnut_events
+        return Event.chessnut_events_cache
 
     class Meta:
         permissions = [
