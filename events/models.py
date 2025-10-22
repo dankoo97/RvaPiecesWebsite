@@ -19,6 +19,9 @@ class EventManager(models.Manager):
         return self.filter(is_archived=True)
 
 
+CHESSNUT_CLUB_ID = os.environ.get("CHESSNUT_CLUB_ID")
+
+
 # Create your models here.
 class Event(models.Model):
     name = models.CharField(max_length=100)
@@ -54,6 +57,8 @@ class Event(models.Model):
     )
 
     objects = EventManager()
+
+    all_chessnut_events = None
 
     def __str__(self):
         if self.is_archived:
@@ -129,36 +134,51 @@ class Event(models.Model):
     def get_absolute_url(self):
         return f"/events/event/{self.slug}/"
 
+    @property
+    def chessnut_events(self):
+        if self.all_chessnut_events is None:
+            self.get_all_chessnut_events()
+        # Match events to the event name and filter out events that are not within 7 days of the event and are not within 45 days of now
+        return [
+            event
+            for event in Event.all_chessnut_events
+            if event["name"].startswith(self.name)
+            and datetime.date.today() - datetime.timedelta(days=7)
+            < event["start_date"].date()
+            < datetime.date.today() + datetime.timedelta(days=45)
+        ]
+
     @staticmethod
-    def get_chessnut_event(chess_club_id, *, start_date=None, end_date=None):
+    def invalidate_chessnut_events_cache():
+        Event.all_chessnut_events = None
+
+    @staticmethod
+    def get_all_chessnut_events():
+        print("Fetching chessnut events...")
         if not os.environ.get("CHESSNUT_API_KEY"):
             raise ValueError("CHESSNUT_API_KEY environment variable not set")
 
-        if start_date is None:
-            start_date = datetime.date.min
-        if end_date is None:
-            end_date = datetime.date.max
-
         headers = {"Authorization": f"Bearer {os.environ.get('CHESSNUT_API_KEY')}"}
         params = {}
+        # NOTE: If chessnut ever updates their api such that we can filter events in the request, we should do that here
         response = requests.get(
-            f"https://chessnut.club/api/v1/club/{chess_club_id}/events/fetch-all",
+            f"https://chessnut.club/api/v1/club/{CHESSNUT_CLUB_ID}/events/fetch-all",
             headers=headers,
             params=params,
         )
         if response.status_code != 200:
-            return []
-        events = response.json()
+            print(f"Failed to fetch chessnut events: {response.text}")
+            return None
 
-        events_on_date = []
-        for event in events["events"]:
-            date = datetime.datetime.strptime(
-                event["start_date"][:10], "%Y-%m-%d"
-            ).date()
-            if start_date <= date <= end_date:
-                events_on_date.append(event)
+        def datetime_parser(dct):
+            for k, v in dct.items():
+                if "date" in k and isinstance(v, str) and v.endswith("Z"):
+                    dct[k] = datetime.datetime.fromisoformat(v[:-1])
+            return dct
 
-        return events_on_date
+        Event.all_chessnut_events = response.json(object_hook=datetime_parser)["events"]
+        print("Fetched chessnut events")
+        return Event.all_chessnut_events
 
     class Meta:
         permissions = [

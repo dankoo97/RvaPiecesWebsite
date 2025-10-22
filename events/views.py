@@ -3,7 +3,10 @@ import calendar
 from collections import defaultdict
 from zoneinfo import ZoneInfo
 
+from django.contrib import messages
+from django.http import HttpResponseRedirect
 from django.shortcuts import render
+from django.urls import reverse
 from django.views import generic
 
 from events.models import Event, Announcement
@@ -92,3 +95,15 @@ def schedule(request):
         "announcements": Announcement.objects.filter(expires__gt=curr_datetime),
     }
     return render(request, "events/schedule.html", context)
+
+
+def invalidate_chessnut_events_cache(request, slug=None):
+    if not (request.user.is_staff or request.user.is_superuser):
+        return render(request, "403.html", status=403)
+    Event.invalidate_chessnut_events_cache()
+    messages.success(request, "Chessnut events cache invalidated.")
+
+    # TODO: Create success message after cache invalidation
+    if slug:
+        return HttpResponseRedirect(reverse("event", args=[slug]))
+    return HttpResponseRedirect(reverse("schedule"))

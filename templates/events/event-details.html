@@ -56,6 +56,20 @@
             {% if event.tournament_standings_link %}
                 <a href="{{ event.tournament_standings_link }}" class="btn btn-primary">Standings</a>
             {% endif %}
+            {# TODO: make this pretty with css #}
+            {% if event.chessnut_events|length > 0 %}
+                <p>Recent and upcoming events in Chessnut.club:</p>
+                <ol>
+                    {% for chessnut_event in event.chessnut_events %}
+                        <ol>
+                            {{ chessnut_event.start_date|date:"l, F j, Y" }}: <a href="https://chessnut.club/events/{{ chessnut_event.id }}">{{ chessnut_event.name }}</a>
+                        </ol>
+                    {% endfor %}
+                </ol>
+            {% endif %}
+            {% if request.user.is_superuser or request.user.is_staff %}
+                <a href="{% url 'invalidate_chessnut_cache' event.slug %}">Invalidate cache</a>
+            {% endif %}
         </div>
     </div>
 {% endblock content %}
