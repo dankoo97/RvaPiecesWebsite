@@ -1,0 +1,23 @@
+
+# Ignore local db
+db.sqlite3
+*.sqlite3
+
+# Django venv stuff
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.log
+
+# Virtual environments and local files
+env/
+venv/
+.env
+*.env
+secrets/
+
+# IDE junk
+.DS_Store
+.vscode/
+.idea/
