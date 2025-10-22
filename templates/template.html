@@ -30,6 +30,9 @@
                 <div class="container-fluid bg-{{ theme }} text-white text-center py-3 sticky-bottom">
                     <ul class="nav justify-content-center">
                         {% include "social-media.html" %}
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url 'admin:index' %}">Admin</a>
+                        </li>
                     </ul>
                 </div>
             </footer>
