@@ -58,6 +58,6 @@ def upload_db():
 
 
 @receiver(post_save)
-def save_to_cloud(sender, instance, **kwargs):
+def save_to_cloud(sender, **kwargs):
     if USE_REMOTE_DB == "True":
         upload_db()
