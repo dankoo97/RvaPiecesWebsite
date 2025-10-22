@@ -97,16 +97,16 @@ WSGI_APPLICATION = "RvaPiecesWebsite.wsgi.application"
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
+REMOTE_DB_PATH = os.environ.get("REMOTE_DB_PATH")
+if os.environ.get("USE_REMOTE_DB"):
+    LOCAL_DB_PATH = "/tmp/db.sqlite3"
+else:
+    LOCAL_DB_PATH = BASE_DIR / "db.sqlite3"
+
 DATABASES = {
     "default": {
-        "ENGINE": "django.db.backends.{}".format(
-            os.getenv("DATABASE_ENGINE", "sqlite3")
-        ),
-        "NAME": os.getenv("DATABASE_NAME", BASE_DIR / "db.sqlite3"),
-        "USER": os.getenv("DATABASE_USERNAME"),
-        "PASSWORD": os.getenv("DATABASE_PASSWORD"),
-        "HOST": os.getenv("DATABASE_HOST"),
-        "PORT": os.getenv("DATABASE_PORT"),
+        "ENGINE": "django.db.backends.sqlite3",
+        "NAME": LOCAL_DB_PATH,
     }
 }
 
