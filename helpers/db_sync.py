@@ -1,6 +1,8 @@
 import os
+import threading
 
-from django.db.models.signals import post_save
+from django.db import transaction
+from django.db.models.signals import post_save, post_delete
 from django.dispatch import receiver
 from google.cloud import storage
 
@@ -8,6 +10,8 @@ BUCKET = os.environ.get("GS_BUCKET_NAME")
 REMOTE_PATH = os.environ.get("REMOTE_DB_PATH")
 LOCAL_PATH = os.environ.get("LOCAL_DB_PATH")
 USE_REMOTE_DB = os.environ.get("USE_REMOTE_DB", "False")
+
+_upload_scheduled = threading.local()
 
 
 def get_client():
@@ -57,7 +61,26 @@ def upload_db():
         print(f"Error uploading database to Google Cloud Storage: {e}")
 
 
-@receiver(post_save)
-def save_to_cloud(sender, **kwargs):
+def schedule_upload():
+    """Schedule an upload at the end of the current transaction."""
+    if not hasattr(_upload_scheduled, "value"):
+        _upload_scheduled.value = False
+
+    if not _upload_scheduled.value:
+        _upload_scheduled.value = True
+        transaction.on_commit(perform_upload)
+
+
+def perform_upload():
+    """Perform the upload and reset the flag"""
+    print("Performing scheduled upload...")
+    upload_db()
+    _upload_scheduled.value = False
+
+
+@receiver([post_save, post_delete])
+def save_to_cloud(sender, instance, **kwargs):
+    """Signal handler to schedule an upload at the end of the current transaction."""
     if USE_REMOTE_DB == "True":
-        upload_db()
+        print(f"Database change detected. Scheduling upload for {sender.__name__}")
+        schedule_upload()
