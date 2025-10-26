@@ -6,6 +6,7 @@ from django.db import models
 from django.utils.text import slugify
 from django_ckeditor_5.fields import CKEditor5Field
 from recurring.models import CalendarEntry
+from django.core.cache import cache
 
 
 class EventManager(models.Manager):
@@ -58,9 +59,6 @@ class Event(models.Model):
     )
 
     objects = EventManager()
-
-    chessnut_events_cache = None
-    last_cache_timestamp = None
 
     def __str__(self):
         if self.is_archived:
@@ -138,31 +136,24 @@ class Event(models.Model):
 
     @property
     def chessnut_events(self):
-        if (
-            self.chessnut_events_cache is None
-            or self.last_cache_timestamp is None
-            or self.last_cache_timestamp + datetime.timedelta(seconds=CACHE_TIMEOUT)
-            < datetime.datetime.now()
-        ):
-            self.get_all_chessnut_events()
-
-        # Match events to the event name and filter out events that are not within 7 days of the event and are not within 45 days of now
-        return [
+        start = datetime.date.today() - datetime.timedelta(days=7)
+        end = datetime.date.today() + datetime.timedelta(days=45)
+        events = [
             event
-            for event in Event.chessnut_events_cache
+            for event in self.get_all_chessnut_events()
             if event["name"].startswith(self.name)
-            and datetime.date.today() - datetime.timedelta(days=7)
-            < event["start_date"].date()
-            < datetime.date.today() + datetime.timedelta(days=45)
+            and start <= event["start_date"].date() <= end
         ]
+        return events
 
     @staticmethod
-    def invalidate_chessnut_events_cache():
-        Event.chessnut_events_cache = None
-        Event.last_cache_timestamp = None
+    def get_all_chessnut_events(force_refresh=None):
+        cache_key = "chessnut_events"
+        if not force_refresh:
+            cached = cache.get(cache_key)
+            if cached is not None:
+                return cached
 
-    @staticmethod
-    def get_all_chessnut_events():
         print("Fetching chessnut events...")
         if not os.environ.get("CHESSNUT_API_KEY"):
             raise ValueError("CHESSNUT_API_KEY environment variable not set")
@@ -185,12 +176,11 @@ class Event(models.Model):
                     dct[k] = datetime.datetime.fromisoformat(v[:-1])
             return dct
 
-        Event.chessnut_events_cache = response.json(object_hook=datetime_parser)[
-            "events"
-        ]
-        Event.last_cached_chessnut_events = datetime.datetime.now()
+        result = response.json(object_hook=datetime_parser)["events"]
         print("Fetched chessnut events")
-        return Event.chessnut_events_cache
+        if result is not None:
+            cache.set(cache_key, result, CACHE_TIMEOUT)
+        return result
 
     class Meta:
         permissions = [
