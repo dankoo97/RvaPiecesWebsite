@@ -1,0 +1,2 @@
+[lint.pyflakes]
+allowed-unused-imports = ["helpers.db_sync"]
