@@ -82,5 +82,8 @@ def perform_upload():
 def save_to_cloud(sender, instance, **kwargs):
     """Signal handler to schedule an upload at the end of the current transaction."""
     if USE_REMOTE_DB == "True":
-        print(f"Database change detected. Scheduling upload for {sender.__name__}")
-        schedule_upload()
+        if (
+            sender.__name__ != "CalendarEntry"
+        ):  # CalendarEntry updates are calculated each time the page is loaded
+            print(f"Database change detected. Scheduling upload for {sender.__name__}")
+            schedule_upload()
