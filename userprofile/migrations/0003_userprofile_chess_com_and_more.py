@@ -5,40 +5,39 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('userprofile', '0002_alter_userprofile_image'),
+        ("userprofile", "0002_alter_userprofile_image"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='userprofile',
-            name='chess_com',
+            model_name="userprofile",
+            name="chess_com",
             field=models.CharField(blank=True, max_length=50),
         ),
         migrations.AddField(
-            model_name='userprofile',
-            name='coaching_description',
+            model_name="userprofile",
+            name="coaching_description",
             field=django_ckeditor_5.fields.CKEditor5Field(blank=True),
         ),
         migrations.AddField(
-            model_name='userprofile',
-            name='lichess',
+            model_name="userprofile",
+            name="lichess",
             field=models.CharField(blank=True, max_length=50),
         ),
         migrations.AddField(
-            model_name='userprofile',
-            name='other_links',
+            model_name="userprofile",
+            name="other_links",
             field=models.JSONField(blank=True, default=dict),
         ),
         migrations.AlterField(
-            model_name='userprofile',
-            name='bio',
+            model_name="userprofile",
+            name="bio",
             field=django_ckeditor_5.fields.CKEditor5Field(blank=True),
         ),
         migrations.AlterField(
-            model_name='userprofile',
-            name='discord',
+            model_name="userprofile",
+            name="discord",
             field=models.CharField(blank=True, max_length=50),
         ),
     ]
