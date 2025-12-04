@@ -57,6 +57,7 @@ class Event(models.Model):
     calendar = models.ForeignKey(
         CalendarEntry, on_delete=models.CASCADE, blank=True, null=True
     )
+    is_holiday = models.BooleanField(default=False)
 
     objects = EventManager()
 
@@ -96,6 +97,7 @@ class Event(models.Model):
                 is_published=True,
                 published_at=datetime.datetime.now(),
                 calendar=self.calendar,
+                is_holiday=self.is_holiday,
                 tournament_event_link=self.tournament_event_link,
                 tournament_pairings_link=self.tournament_pairings_link,
                 tournament_standings_link=self.tournament_standings_link,

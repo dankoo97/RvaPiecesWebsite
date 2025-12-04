@@ -1,4 +1,6 @@
 {% for event in events %}
-    <hr>
-    {% include "events/short-details.html" with event=event %}
+    {% if not event.is_holiday %}
+        <hr>
+        {% include "events/short-details.html" with event=event %}
+    {% endif %}
 {% endfor %}

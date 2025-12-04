@@ -6,7 +6,7 @@
     {% for event_instance in schedule %}
         {% if day.month == datetime.month %}
             <figure class="figure align-center">
-                <a href="{% url 'event' event_instance.event.slug %}">
+                {% if event_instance.event.is_holiday %}
                     {% if event_instance.event.icon %}
                         <img class="figure-img img-fluid justify-content-center"
                              src="{{ event_instance.event.icon.url }}"
@@ -16,8 +16,20 @@
                             <b>{{ event_instance.event.name }}</b>
                         </p>
                     {% endif %}
-                </a>
-                <span class="figure-caption align-bottom text-center d-none d-md-block">{{ event_instance.start_time|time:"g:i a" }}</span>
+                {% else %}
+                    <a href="{% url 'event' event_instance.event.slug %}">
+                        {% if event_instance.event.icon %}
+                            <img class="figure-img img-fluid justify-content-center"
+                                 src="{{ event_instance.event.icon.url }}"
+                                 alt="{{ event_instance.event.name }}">
+                        {% else %}
+                            <p>
+                                <b>{{ event_instance.event.name }}</b>
+                            </p>
+                        {% endif %}
+                    </a>
+                    <span class="figure-caption align-bottom text-center d-none d-md-block">{{ event_instance.start_time|time:"g:i a" }}</span>
+                {% endif %}
             </figure>
         {% endif %}
     {% endfor %}
