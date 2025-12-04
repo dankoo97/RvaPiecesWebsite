@@ -17,7 +17,7 @@
         </p>
         <p>
             If you’d like to connect with other beginners, come visit one of our
-            <a href="https://rvapieces.org/schedule/#beginners-only">Beginners Only meetups</a>,
+            <a href="{% url 'event' 'beginner-benchtop' %}">Beginners</a> <a href="{% url 'event' 'beginner-final-gravity' %}">Only</a> meetups,
             held every other week. Starting November, we’ll be relaunching our free
             <a href="{% url 'event' 'beginner-classes' %}">beginner classes</a>.
             But again, even if you’re new to the game, you’re absolutely welcome at all of our events.
@@ -28,13 +28,13 @@
         <p>
             Some things we do are set up with beginners in mind. When we talk about beginners, we’re thinking of those
             with an Elo of less than 1000 or so. If you can beat
-            <a href="https://rvapieces.org/who-we-are/#jared">Jared</a>,
+            <a href="{% url 'who_we_are' %}#jared">Jared</a>,
             you’re probably not a beginner.
         </p>
         <p>
             Our <a href="{% url 'event' 'beginner-classes' %}">classes</a> at the library (relaunching in
             November) are targeted for beginners. However, you’re welcome to join even if you’re not a beginner. On the
-            other hand, our <a href="https://rvapieces.org/schedule/#beginners-only">Beginners Only meetups</a> are
+            other hand, our <a href="{% url 'event' 'beginner-benchtop' %}">Beginners</a> <a href="{% url 'event' 'beginner-final-gravity' %}">Only</a> meetups are
             intended only for beginners. On <a href="{% discord_invite %}">Discord</a>, the #beginners-only
             channel is a discussion hub strictly for beginners to hang out amongst themselves. We want to give beginners
             the chance to learn and play with other beginners, but beginners are more than welcome at all of our events.
@@ -57,7 +57,7 @@
         <h4>Do I need to preregister for events?</h4>
         <p>
             It depends on the event. There’s no need to register for our casual game nights, Monroe Park, or beginner
-            classes. For our <a href="{% url 'event' 'uscf-rated-ladder' %}">USCF rated ladder</a>, we encourage
+            classes. For our <a href="{% url 'event' 'rva-pieces-rated-ladder' %}">USCF rated ladder</a>, we encourage
             you to <a href="{% chessnut_page %}/events">preregister</a> online, but you can also register
             in person. If you plan to come out to
             <a href="{% url 'event' 'backyard-blitz' %}">Backyard Blitz</a>, DM
@@ -113,7 +113,7 @@
             hit the clock, club rules say that your opponent has the right to capture your king. 💀
         </p>
         <p>
-            Our biweekly <a href="{% url 'event' 'rated-ladder' %}">USCF rated ladder</a> is an official
+            Our biweekly <a href="{% url 'event' 'rva-pieces-rated-ladder' %}">USCF rated ladder</a> is an official
             tournament, and in that setting, touch/move <strong><em>does</em></strong> apply. If you touch a piece, and
             you can legally move it, then you must do so.
         </p>

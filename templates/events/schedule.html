@@ -1,4 +1,5 @@
 {% extends "template.html" %}
+{% load social_media_tags %}
 {% load static %}
 {% load bootstrap_icons %}
 {% block content %}
@@ -8,7 +9,7 @@
         Below, you can find which upcoming dates we’re planning to meet. It’s not common that we cancel an event, but if we do, we’ll mark it here.
     </p>
     <p>
-        Check out our page on <a href="https://chessnut.club/c/rvapieces">Chess Nut</a> to sign up for our formal tournaments and ladder events
+        Check out our page on <a href="{% chessnut_page %}">Chess Nut</a> to sign up for our formal tournaments and ladder events
     </p>
     {% for announcement in announcements %}
         {% autoescape off %}
