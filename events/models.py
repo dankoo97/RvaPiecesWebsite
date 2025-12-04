@@ -136,13 +136,29 @@ class Event(models.Model):
 
     @property
     def chessnut_events(self):
+        if self.tournament_event_link:
+            # Assume the link is either to chessnut or another tournament website
+            return []
+
         start = datetime.date.today() - datetime.timedelta(days=7)
         end = datetime.date.today() + datetime.timedelta(days=45)
         events = [
             event
             for event in self.get_all_chessnut_events()
             if event["name"].startswith(self.name)
-            and start <= event["start_date"].date() <= end
+            and any(
+                (
+                    event["start_date"].date()
+                    <= datetime.date.today()
+                    <= event["end_date"].date(),  # Ongoing
+                    datetime.date.today()
+                    <= event["start_date"].date()
+                    <= end,  # Upcoming
+                    start
+                    <= event["end_date"].date()
+                    <= datetime.date.today(),  # Ended recently
+                )
+            )
         ]
         return events
 
