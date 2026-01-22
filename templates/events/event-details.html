@@ -12,6 +12,17 @@
         </script>
     {% endif %}
     <link rel="stylesheet" href="{% static 'styles/event-details.css' %}">
+    {% if request.user.is_staff or request.user.is_superuser %}
+        <div>
+            {% if not event.is_published %}
+                <input type="submit" value="Publish" name="_publish">
+                <a href="{% url 'admin:events_event_change' event.id %}">Edit</a>
+                <a href="{% url 'admin:events_event_delete' event.id %}">Delete</a>
+            {% else %}
+                <a href="{% url 'admin:events_event_change' event.published_version_id %}">Edit</a>
+            {% endif %}
+        </div>
+    {% endif %}
     <div class="clearfix">
         <div class="row align-items-center event-header">
             {% if event.icon %}

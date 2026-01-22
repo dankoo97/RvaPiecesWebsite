@@ -3,6 +3,7 @@ import calendar
 from collections import defaultdict
 from zoneinfo import ZoneInfo
 
+from django.http import HttpResponseForbidden
 from django.shortcuts import render, redirect
 from django.views import generic
 
@@ -18,6 +19,18 @@ class ListEventsView(generic.ListView):
 class EventView(generic.DetailView):
     model = Event
     template_name = "events/event-details.html"
+
+    def post(self, request, *args, **kwargs):
+        if not (request.user.is_staff or request.user.is_superuser):
+            return HttpResponseForbidden()
+        if "_publish" in request.POST:
+            published_event = self.object.publish()
+            if published_event:
+                return redirect(self.object.get_absolute_url())
+        if "_archive" in request.POST:
+            self.object.archive()
+            return redirect("events:list")
+        return None
 
     def get(self, request, *args, **kwargs):
         if request.GET.get("force_refresh", "false").lower() == "true":
