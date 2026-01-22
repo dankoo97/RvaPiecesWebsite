@@ -14,10 +14,12 @@
     <link rel="stylesheet" href="{% static 'styles/event-details.css' %}">
     <div class="clearfix">
         <div class="row align-items-center event-header">
-            <img class="img-fluid col-auto event-icon"
-                 style="height: 4rem"
-                 src="{{ event.icon.url }}"
-                 alt="{{ event.name }}">
+            {% if event.icon %}
+                <img class="img-fluid col-auto event-icon"
+                     style="height: 4rem"
+                     src="{{ event.icon.url }}"
+                     alt="{{ event.name }}">
+            {% endif %}
             <h2 class="col text-start">
                 {{ event.name }}
                 {% if not event.is_published %}
