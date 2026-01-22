@@ -20,8 +20,5 @@
     {% if next_month %}
         {% include "events/calendar.html" with month=next_month.calendar datetime=next_month.datetime event_instances=event_instances %}
     {% endif %}
-    <h3>Promoted Events:</h3>
-    {% include "events/promoted_events.html" with events=events %}
-    <h3>All Events:</h3>
     {% include "events/list.html" with events=events %}
 {% endblock content %}

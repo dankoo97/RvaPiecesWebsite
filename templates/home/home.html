@@ -22,8 +22,14 @@
         </div>
     </div>
     <hr>
-    <h3>Our Upcoming Events!</h3>
-    {% include "events/promoted_events.html" with events=events %}
+    {% if events %}
+        <h3>Our Upcoming Events!</h3>
+        <hr>
+        {% for event in events %}
+            {% include "events/short-details.html" with event=event %}
+            <hr>
+        {% endfor %}
+    {% endif %}
     <hr>
     <div id="carouselSlides" class="carousel slide" data-bs-ride="carousel">
         <div class="carousel-indicators">

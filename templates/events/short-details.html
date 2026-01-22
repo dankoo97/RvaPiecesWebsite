@@ -1,3 +1,6 @@
+{% load static %}
+{% load bootstrap_icons %}
+<link rel="stylesheet" href="{% static 'styles/event-details.css' %}">
 <div class="clearfix">
     <div class="event-header">
         <a href="{% url 'event' event.slug %}">
@@ -8,7 +11,12 @@
                          src="{{ event.icon.url }}"
                          alt="{{ event.name }}">
                 {% endif %}
-                <h2 class="col-10 text-start">{{ event.name }}</h2>
+                <h2 class="col-10 text-start">
+                    {{ event.name }}
+                    {% if event.is_promoted %}
+                        {% bs_icon 'star-fill' %}
+                    {% endif %}
+                </h2>
             </div>
         </a>
     </div>

@@ -54,7 +54,7 @@ def schedule(request):
     month = calendar.Calendar()
     month.setfirstweekday(calendar.SUNDAY)
 
-    events = Event.objects.public()
+    events = Event.objects.public().order_by("-is_promoted")
 
     event_instances = defaultdict(list)
     for event in events:
