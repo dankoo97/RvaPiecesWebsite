@@ -87,7 +87,9 @@ def schedule(request):
             "datetime": month_start + datetime.timedelta(days=32),
             "calendar": list(
                 month.monthdatescalendar(
-                    curr_datetime.year,
+                    curr_datetime.year
+                    if curr_datetime.month < 12
+                    else curr_datetime.year + 1,
                     curr_datetime.month + 1 if curr_datetime.month < 12 else 1,
                 )
             ),
