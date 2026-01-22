@@ -117,6 +117,7 @@ class Event(models.Model):
         self.is_promoted = False
         self.archived_at = datetime.datetime.now()
         self.save()
+        return self
 
     def save(self, *args, **kwargs):
         base_slug = slugify(self.name)
