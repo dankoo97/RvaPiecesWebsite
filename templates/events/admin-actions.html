@@ -1,0 +1,16 @@
+{% load crispy_forms_tags %}
+<h4>Admin Controls</h4>
+<div>
+    <form method="post">
+        {% csrf_token %}
+        {% if not event.is_published %}
+            <input type="submit" value="Publish" name="_publish">
+            <a href="{% url 'admin:events_event_change' event.id %}">Edit</a>
+            <a href="{% url 'admin:events_event_delete' event.id %}">Delete</a>
+            <input type="submit" value="Add Lichess Study" name="_study">
+        {% else %}
+            <a href="{% url 'admin:events_event_change' event.published_version_id %}">Edit</a>
+        {% endif %}
+    </form>
+    {% crispy lichess_form %}
+</div>

@@ -1,12 +1,19 @@
 import datetime
 import os
-
+import re
 import requests
+from io import StringIO
+
+import berserk
+import chess.pgn
+
 from django.db import models
 from django.utils.text import slugify
 from django_ckeditor_5.fields import CKEditor5Field
 from recurring.models import CalendarEntry
 from django.core.cache import cache
+
+from helpers.models import PrettyJSONEncoder
 
 
 class EventManager(models.Manager):
@@ -214,3 +221,69 @@ class Announcement(models.Model):
 
     def __str__(self):
         return self.content
+
+
+class LichessStudy(models.Model):
+    event = models.ForeignKey(
+        Event,
+        on_delete=models.CASCADE,
+        related_name="lichess_studies",
+        limit_choices_to={"is_published": True},
+    )
+    name = models.CharField(max_length=100)
+    study_id = models.CharField(
+        max_length=100, unique=True, null=False, blank=False, primary_key=True
+    )
+    chapters = models.JSONField(default=list, encoder=PrettyJSONEncoder)
+    tournament_date = models.DateField()
+
+    def save(self, *args, **kwargs):
+        if "lichess" in self.study_id:
+            p = re.compile(r"study/(?P<study_id>[a-zA-Z0-9]+)")
+            self.study_id = p.search(self.study_id).group("study_id")
+
+        if len(self.chapters) == 0:
+            self.download_study()
+
+        super().save(*args, **kwargs)
+
+    def __str__(self):
+        return self.name
+
+    @property
+    def study_url(self):
+        return f"https://lichess.org/study/{self.study_id}"
+
+    def add_chapters(self, pgn, chapter_name=None):
+        """
+        https://lichess.org/api#tag/studies/POST/api/study/{studyId}/import-pgn
+        :param pgn: Pgn representation of the chapters
+        :param chapter_name: Name of the chapter
+        :return: List of chapters created
+        """
+        session = berserk.TokenSession(os.environ.get("LICHESS_API_TOKEN"))
+        client = berserk.Client(session=session)
+        created_chapters = client.studies.import_pgn(
+            study_id=self.study_id, pgn=pgn, chapter_name=chapter_name
+        )
+        self.chapters.append(created_chapters)
+        return created_chapters
+
+    def download_study(self):
+        """
+        https://lichess.org/api#tag/studies/GET/api/study/{studyId}.pgn
+        """
+        session = berserk.TokenSession(os.environ.get("LICHESS_API_TOKEN"))
+        client = berserk.Client(session=session)
+
+        chapters = client.studies.export(study_id=self.study_id)
+
+        self.chapters = []
+        for chapter in chapters:
+            game = chess.pgn.read_game(StringIO(chapter))
+            self.chapters.append(dict(game.headers))
+
+            if not self.name:
+                self.name = game.headers["StudyName"]
+
+        return self.chapters

@@ -1,0 +1,21 @@
+{% extends "template.html" %}
+{% load crispy_forms_filters %}
+{% load crispy_forms_tags %}
+{% block content %}
+    <p>Share your game in our private lichess study!</p>
+    <p>Upload or paste a pgn file to auto complete</p>
+    {% crispy form %}
+    {% if success %}
+        <p>
+            <strong>Success!</strong>
+        </p>
+        <p>See your chapter in the study here:</p>
+        <ul>
+            {% for chapter in chapter_ids %}
+                <li>
+                    <a href="{{ study.study_url }}/{{ chapter }}">{{ study.study_url }}/{{ chapter }}</a>
+                </li>
+            {% endfor %}
+        </ul>
+    {% endif %}
+{% endblock content %}

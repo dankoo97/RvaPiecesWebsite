@@ -57,6 +57,8 @@ INSTALLED_APPS = [
     "django_bootstrap5",
     "django_bootstrap_icons",
     "django_sass",
+    "crispy_forms",
+    "crispy_bootstrap5",
 ]
 
 MIDDLEWARE = [
@@ -197,6 +199,9 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 GOOGLE_TOKEN_FILE = os.environ.get("GOOGLE_TOKEN_FILE")
 DONATION_LINK = os.environ.get("DONATION_LINK")
 
+CRISPY_ALLOWED_TEMPLATE_PACKS = "bootstrap5"
+CRISPY_TEMPLATE_PACK = "bootstrap5"
+
 customColorPalette = [
     {"color": "hsl(4, 90%, 58%)", "label": "Red"},
     {"color": "hsl(340, 82%, 52%)", "label": "Pink"},
@@ -207,6 +212,8 @@ customColorPalette = [
 ]
 
 CKEDITOR_5_CUSTOM_CSS = "styles/ckeditor.css"
+
+DEFAULT_FROM_EMAIL = os.environ.get("DEFAULT_FROM_EMAIL")
 
 CKEDITOR_5_CONFIGS = {
     "default": {

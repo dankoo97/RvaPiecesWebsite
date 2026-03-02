@@ -1,7 +1,7 @@
 from django.contrib import admin
 from django.shortcuts import redirect
 
-from events.models import Event, Announcement
+from events.models import Event, Announcement, LichessStudy
 
 
 # Register your models here.
@@ -104,3 +104,4 @@ class EventAdmin(admin.ModelAdmin):
 
 
 admin.site.register(Announcement)
+admin.site.register(LichessStudy)
