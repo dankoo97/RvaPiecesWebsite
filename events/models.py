@@ -149,14 +149,12 @@ class Event(models.Model):
             if event["name"].startswith(self.name)
             and any(
                 (
-                    event["start_date"].date()
+                    event["start_date"]
                     <= datetime.date.today()
-                    <= event["end_date"].date(),  # Ongoing
-                    datetime.date.today()
-                    <= event["start_date"].date()
-                    <= end,  # Upcoming
+                    <= event["end_date"],  # Ongoing
+                    datetime.date.today() <= event["start_date"] <= end,  # Upcoming
                     start
-                    <= event["end_date"].date()
+                    <= event["end_date"]
                     <= datetime.date.today(),  # Ended recently
                 )
             )
@@ -189,8 +187,8 @@ class Event(models.Model):
 
         def datetime_parser(dct):
             for k, v in dct.items():
-                if "date" in k and isinstance(v, str) and v.endswith("Z"):
-                    dct[k] = datetime.datetime.fromisoformat(v[:-1])
+                if "date" in k and isinstance(v, str):
+                    dct[k] = datetime.date.fromisoformat(v)
             return dct
 
         result = response.json(object_hook=datetime_parser)["events"]
