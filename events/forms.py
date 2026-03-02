@@ -17,7 +17,7 @@ class LichessStudyForm(forms.ModelForm):
         self.helper.form_class = "lichess-study-form"
         self.helper.form_method = "post"
 
-        self.helper.add_input(Submit("submit", "Add Study"))
+        self.helper.add_input(Submit("_study", "Add Study"))
 
     class Meta:
         model = LichessStudy
