@@ -11,6 +11,8 @@ A modern IDE (Intellij, VSCode, etc.) w/ any relevant plugins
 A modern browser
 ```
 
+Check out the live website at rvapieces.org
+
 ### How to run
 1. In the root directory create a .env file
     ```aiignore
