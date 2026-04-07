@@ -181,7 +181,14 @@ class Event(models.Model):
             raise ValueError("CHESSNUT_API_KEY environment variable not set")
 
         headers = {"Authorization": f"Bearer {os.environ.get('CHESSNUT_API_KEY')}"}
-        params = {}
+        params = {
+            "start_date": (
+                datetime.date.today() - datetime.timedelta(days=90)
+            ).isoformat(),
+            "end_date": (
+                datetime.date.today() + datetime.timedelta(days=45)
+            ).isoformat(),
+        }
         # NOTE: If chessnut ever updates their api such that we can filter events in the request, we should do that here
         response = requests.get(
             f"https://chessnut.club/api/v1/club/{CHESSNUT_CLUB_ID}/events/fetch-all",
