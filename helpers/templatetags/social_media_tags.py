@@ -31,3 +31,8 @@ def email():
 @register.simple_tag
 def chessnut_page():
     return "https://chessnut.club/c/rvapieces"
+
+
+@register.simple_tag
+def chessnut_club_link(*args):
+    return f"https://chessnut.club/{'/'.join((str(arg) for arg in args))}"

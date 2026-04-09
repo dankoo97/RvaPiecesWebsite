@@ -1,0 +1,19 @@
+{% load social_media_tags %}
+<a href="{% chessnut_club_link "e" chessnut_event.slug %}"
+   class="btn btn-primary">Tournament Details</a>
+{% if chessnut_event.sections|length > 1 %}
+    <a href="{% chessnut_club_link "e" chessnut_event.slug "participants" %}"
+       class="btn btn-secondary">All Participants</a>
+{% endif %}
+<br>
+{{ chessnut_event.start_date|date:"l, F j, Y" }}
+{% if chessnut_event.start_date != chessnut_event.end_date %}
+    - {{ chessnut_event.end_date|date:"l, F j, Y" }}
+{% endif %}
+{% with section=chessnut_event.sections|first %}
+    {% include "events/chessnut/chessnut-section-details.html" %}
+{% endwith %}
+{% for section in chessnut_event.sections|slice:"1:" %}
+    <hr>
+    {% include "events/chessnut/chessnut-section-details.html" %}
+{% endfor %}

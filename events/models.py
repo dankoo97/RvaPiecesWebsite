@@ -148,28 +148,31 @@ class Event(models.Model):
             # Assume the link is either to chessnut or another tournament website
             return []
 
-        start = datetime.date.today() - datetime.timedelta(days=7)
-        end = datetime.date.today() + datetime.timedelta(days=45)
         events = [
             event
             for event in self.get_all_chessnut_events()
             if event["name"].startswith(self.name)
-            and any(
-                (
-                    event["start_date"]
-                    <= datetime.date.today()
-                    <= event["end_date"],  # Ongoing
-                    datetime.date.today() <= event["start_date"] <= end,  # Upcoming
-                    start
-                    <= event["end_date"]
-                    <= datetime.date.today(),  # Ended recently
-                )
-            )
         ]
-        return events
+
+        ongoing = [
+            e
+            for e in events
+            if e["start_date"] <= datetime.date.today() <= e["end_date"]
+        ]
+        upcoming = sorted(
+            [e for e in events if e["start_date"] > datetime.date.today()],
+            key=lambda e: e["start_date"],
+        )
+        past = sorted(
+            [e for e in events if datetime.date.today() > e["end_date"]],
+            key=lambda e: e["end_date"],
+            reverse=True,
+        )
+
+        return ongoing + upcoming + past
 
     @staticmethod
-    def get_all_chessnut_events(force_refresh=None):
+    def get_all_chessnut_events(force_refresh=None) -> list[dict]:
         cache_key = "chessnut_events"
         if not force_refresh:
             cached = cache.get(cache_key)
@@ -183,10 +186,10 @@ class Event(models.Model):
         headers = {"Authorization": f"Bearer {os.environ.get('CHESSNUT_API_KEY')}"}
         params = {
             "start_date": (
-                datetime.date.today() - datetime.timedelta(days=90)
+                datetime.date.today() - datetime.timedelta(days=60)
             ).isoformat(),
             "end_date": (
-                datetime.date.today() + datetime.timedelta(days=45)
+                datetime.date.today() + datetime.timedelta(days=90)
             ).isoformat(),
         }
         # NOTE: If chessnut ever updates their api such that we can filter events in the request, we should do that here
@@ -197,7 +200,7 @@ class Event(models.Model):
         )
         if response.status_code != 200:
             print(f"Failed to fetch chessnut events: {response.text}")
-            return None
+            return []
 
         def datetime_parser(dct):
             for k, v in dct.items():

@@ -61,17 +61,6 @@
             {% if request.user.is_staff or request.user.is_superuser %}
                 <a href="?force_refresh=true">Force cache refresh</a>
             {% endif %}
-            {# TODO: make this pretty with css #}
-            {% if event.chessnut_events|length > 0 %}
-                <p>Recent and upcoming events in Chessnut.club:</p>
-                <ol>
-                    {% for chessnut_event in event.chessnut_events %}
-                        <ol>
-                            {{ chessnut_event.start_date|date:"l, F j, Y" }}: <a href="https://chessnut.club/events/{{ chessnut_event.id }}">{{ chessnut_event.name }}</a>
-                        </ol>
-                    {% endfor %}
-                </ol>
-            {% endif %}
             {% if has_lichess_study %}
                 <p>
                     Want to share your game from this event? <a href="{% url "upload_game" event.slug %}">Add to our lichess study!</a>
@@ -79,6 +68,9 @@
             {% endif %}
         </div>
     </div>
+    {% if event.chessnut_events|length > 0 %}
+        {% include "events/chessnut/chessnut-events.html" %}
+    {% endif %}
     {% if request.user.is_staff or request.user.is_superuser %}
         {% include "events/admin-actions.html" %}
     {% endif %}

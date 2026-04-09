@@ -1,0 +1,40 @@
+<div class="accordion py-4" id="chessnut-accordion">
+    {% with chessnut_event=event.chessnut_events|first %}
+        <div class="accordion-item">
+            <h2 class="accordion-header">
+                <button class="accordion-button"
+                        type="button"
+                        data-bs-toggle="collapse"
+                        data-bs-target="#chessnut-accordion-collapse-{{ chessnut_event.id }}"
+                        aria-expanded="true"
+                        aria-controls="chessnut-accordion-collapse-{{ chessnut_event.id }}">
+                    {{ chessnut_event.name }}
+                </button>
+            </h2>
+            <div id="chessnut-accordion-collapse-{{ chessnut_event.id }}"
+                 class="accordion-collapse collapse show"
+                 data-bs-parent="#chessnut-accordion">
+                <div class="accordion-body">{% include "events/chessnut/chessnut-event-details.html" %}</div>
+            </div>
+        </div>
+    {% endwith %}
+    {% for chessnut_event in event.chessnut_events|slice:"1:" %}
+        <div class="accordion-item">
+            <h2 class="accordion-header">
+                <button class="accordion-button collapsed"
+                        type="button"
+                        data-bs-toggle="collapse"
+                        data-bs-target="#chessnut-accordion-collapse-{{ chessnut_event.id }}"
+                        aria-expanded="false"
+                        aria-controls="chessnut-accordion-collapse-{{ chessnut_event.id }}">
+                    {{ chessnut_event.name }}
+                </button>
+            </h2>
+            <div id="chessnut-accordion-collapse-{{ chessnut_event.id }}"
+                 class="accordion-collapse collapse"
+                 data-bs-parent="#chessnut-accordion">
+                <div class="accordion-body">{% include "events/chessnut/chessnut-event-details.html" %}</div>
+            </div>
+        </div>
+    {% endfor %}
+</div>

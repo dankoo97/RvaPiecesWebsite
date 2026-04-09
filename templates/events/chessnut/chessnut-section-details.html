@@ -1,0 +1,8 @@
+{% load social_media_tags %}
+<h4>{{ section.name }}:</h4>
+<a href="{% chessnut_club_link "checkout" section.id "show" %}"
+   class="btn btn-primary">Register</a>
+<a href="{% chessnut_club_link "e" chessnut_event.slug "pairings" section.id %}"
+   class="btn btn-primary">Pairings</a>
+<a href="{% chessnut_club_link "e" chessnut_event.slug "standings" section.id %}"
+   class="btn btn-primary">Standings</a>
