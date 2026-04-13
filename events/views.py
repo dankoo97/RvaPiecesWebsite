@@ -99,21 +99,15 @@ class UploadGameView(SingleObjectMixin, generic.FormView):
 
     def post(self, request, *args, **kwargs):
         self.object = self.get_object()
-        form = LichessStudyGameSubmissionForm(
-            self.get_object(), request.POST, request.FILES
-        )
+        form = LichessStudyGameSubmissionForm(self.object, request.POST)
         if form.is_valid():
-            if form.cleaned_data["pgn_file"]:
-                pgn_bytes = form.cleaned_data["pgn_file"].read()
-                pgn_text = pgn_bytes.decode("utf-8", errors="replace")
-            else:
-                pgn_text = form.cleaned_data["pgn_text"]
+            pgn_text = form.cleaned_data["pgn"]
             game = chess.pgn.read_game(StringIO(pgn_text))
             if game is None:
                 return HttpResponse("Invalid PGN", status=400)
 
             study = form.cleaned_data["study"]
-            chapters = study.add_chapters(pgn_text)
+            chapters = study.add_chapters(str(game))
             query = QueryDict(mutable=True)
             query.setlist("chapters", [c["id"] for c in chapters])
             query.setlist("success", ["true"])
