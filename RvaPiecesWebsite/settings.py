@@ -190,6 +190,8 @@ STATICFILES_DIRS = [
 ]
 STATIC_ROOT = BASE_DIR / "staticfiles"
 BS_ICONS_CUSTOM_PATH = BASE_DIR / "static/icons"
+BS_ICONS_BASE_URL = "https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.1/"
+BS_ICONS_CACHE = os.path.join(STATIC_ROOT, "icon_cache")
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
