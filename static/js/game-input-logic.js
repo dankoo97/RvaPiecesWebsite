@@ -397,6 +397,10 @@ document.getElementById('board').onclick = (event) => {
 
 
 let pieceBaseUrl = $board.data('piece-url')
+// Google api will add extraneous query parameters which chessboardjs does not expect
+if (pieceBaseUrl) {
+    pieceBaseUrl = pieceBaseUrl.split('?')[0];
+}
 let config = {
     draggable: true,
     position: 'start',

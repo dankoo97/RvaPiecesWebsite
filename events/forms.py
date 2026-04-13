@@ -173,8 +173,6 @@ class LichessStudyGameSubmissionForm(forms.Form):
             pgn_buttons_wrapper,
         )
 
-        print(f"Form init took {datetime.datetime.now() - self._timing}")
-
     @staticmethod
     def generate_button_layout(buttons, css_class=""):
         for i, button in enumerate(buttons):
