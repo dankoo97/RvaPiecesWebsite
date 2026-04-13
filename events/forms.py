@@ -1,12 +1,12 @@
 import datetime
 
 from django import forms
-from django.core.validators import FileExtensionValidator
+from django.templatetags.static import static
 
-from events.models import LichessStudy, Event
+from events.models import LichessStudy
 
 from crispy_forms.helper import FormHelper
-from crispy_forms.layout import Submit
+from crispy_forms.layout import Submit, Layout, HTML, Div, Button, Field
 
 
 class LichessStudyForm(forms.ModelForm):
@@ -38,24 +38,47 @@ class LichessStudyForm(forms.ModelForm):
 
 
 class LichessStudyGameSubmissionForm(forms.Form):
-    event = forms.ModelChoiceField(
-        queryset=Event.objects.all(), widget=forms.HiddenInput
-    )
     study = forms.ModelChoiceField(
         queryset=LichessStudy.objects.all(), label="Lichess Study", empty_label=None
     )
-    pgn_file = forms.FileField(
-        label="PGN File",
-        required=False,
-        validators=[FileExtensionValidator(allowed_extensions=["pgn"])],
-    )
-    pgn_text = forms.CharField(widget=forms.Textarea, required=False, label="PGN Text")
+    pgn = forms.CharField(widget=forms.HiddenInput, required=True, label="PGN Preview")
+    text_manipulation_buttons = [
+        {
+            "id": "upload-pgn",
+            "text": "Upload",
+            "icon": "bi bi-upload",
+            "title": "Upload PGN File",
+        },
+        {
+            "id": "paste-pgn",
+            "text": "Paste",
+            "icon": "bi bi-clipboard-plus",
+            "title": "Paste PGN",
+        },
+        {"id": "copy-pgn", "text": "Copy", "icon": "bi bi-copy", "title": "Copy PGN"},
+        {"id": "clear-pgn", "text": "Clear", "icon": "bi bi-x", "title": "Clear PGN"},
+    ]
+
+    board_manipulation_buttons = [
+        {"id": "to-start", "icon": "bi bi-skip-backward-fill", "title": "To Start"},
+        {
+            "id": "previous-move",
+            "icon": "bi bi-arrow-left-circle-fill",
+            "title": "Previous Move",
+        },
+        {
+            "id": "next-move",
+            "icon": "bi bi-arrow-right-circle-fill",
+            "title": "Next Move",
+        },
+        {"id": "to-end", "icon": "bi bi-skip-forward-fill", "title": "To End"},
+        {"id": "flip-board", "icon": "bi bi-arrow-down-up", "title": "Flip Board"},
+    ]
 
     _lifespan = 90
 
     def __init__(self, event, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.fields["event"].initial = event
         self.fields[
             "study"
         ].queryset = LichessStudyGameSubmissionForm.get_relevant_studies(event)
@@ -64,7 +87,108 @@ class LichessStudyGameSubmissionForm(forms.Form):
         self.helper.form_id = "lichess-study-game-submission-form"
         self.helper.form_class = "lichess-study-game-submission-form"
         self.helper.form_method = "post"
-        self.helper.add_input(Submit("submit", "Submit Game"))
+
+        board_wrapper = Div(
+            Div(
+                Div(
+                    css_id="board",
+                    css_class="game-board",
+                    data_piece_url=static("images/chesspieces/wikipedia/"),
+                    data_event_name=event.name,
+                    data_event_location=event.location,
+                ),
+                Div(
+                    Div(
+                        *(
+                            self.generate_button_layout(
+                                self.board_manipulation_buttons[:4],
+                                "btn btn-outline-dark btn-small board-manipulation-button",
+                            )
+                        ),
+                        css_class="btn-group me-2 ms-md-3",
+                        role="group",
+                    ),
+                    Div(
+                        *(
+                            self.generate_button_layout(
+                                self.board_manipulation_buttons[4:],
+                                "btn btn-outline-dark btn-small board-manipulation-button",
+                            )
+                        ),
+                        css_class="btn-group me-2",
+                        role="group",
+                    ),
+                    css_class="btn-toolbar board-manipulation-buttons",
+                    role="toolbar",
+                ),
+                css_id="board-wrapper",
+                css_class="col-12 col-md-6 mb-3 mb-md-0",
+            ),
+            Div(
+                Div(
+                    css_id="move-list",
+                    css_class="move-list mb-3 ms-md-3",
+                ),
+                css_id="move-list-wrapper",
+                css_class="col-12 col-md-6",
+            ),
+            css_class="row g-3 mb-3 align-items-start",
+        )
+
+        header_wrapper = Div(
+            HTML("<label class='header-label' for='tag-container'>PGN Headers</label>"),
+            Div(
+                css_id="tag-container",
+            ),
+            Button(
+                "add-header-btn",
+                css_id="add-header-button",
+                css_class="btn btn-small btn-outline-secondary mb-3",
+                value="Add Header",
+            ),
+            css_id="header-root",
+        )
+
+        pgn_buttons_wrapper = Div(
+            Submit("submit", "Submit Game", css_class="btn-small me-2"),
+            Div(
+                *(
+                    self.generate_button_layout(
+                        self.text_manipulation_buttons,
+                        "btn btn-outline-dark btn-small text-manipulation-button",
+                    )
+                ),
+                css_class="btn-group text-manipulation-buttons",
+                role="group",
+            ),
+            css_class="container btn-toolbar bg-light-subtle p-2 my-4 rounded",
+            role="toolbar",
+        )
+
+        self.helper.layout = Layout(
+            Field("pgn"),
+            Field("study"),
+            board_wrapper,
+            header_wrapper,
+            pgn_buttons_wrapper,
+        )
+
+        print(f"Form init took {datetime.datetime.now() - self._timing}")
+
+    @staticmethod
+    def generate_button_layout(buttons, css_class=""):
+        for i, button in enumerate(buttons):
+            yield HTML(f"""
+                <button
+                    id="{button["id"]}"
+                    type="button"
+                    class="{css_class}"
+                    title="{button["title"]}"
+                    >
+                        {"" if "text" not in button else "<span>" + button["text"] + "</span>"}
+                        <i class="{button["icon"]}"></i>
+                </button>
+            """)
 
     @staticmethod
     def get_relevant_studies(event):
@@ -76,21 +200,3 @@ class LichessStudyGameSubmissionForm(forms.Form):
             tournament_date__lte=datetime.datetime.today(),
         )
         return studies
-
-    def clean(self):
-        cleaned_data = super().clean()
-
-        pgn_file = cleaned_data.get("pgn_file")
-        pgn_text = cleaned_data.get("pgn_text")
-
-        if not (pgn_file or pgn_text):
-            raise forms.ValidationError(
-                "You must provide either a PGN file or PGN text."
-            )
-
-        if pgn_file and pgn_text:
-            raise forms.ValidationError(
-                "You cannot provide both a PGN file and PGN text."
-            )
-
-        return cleaned_data
