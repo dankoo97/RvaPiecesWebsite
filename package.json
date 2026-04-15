@@ -5,8 +5,8 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "build:js": "esbuild static/js/game-input-logic.js --bundle --minify --format=iife --outfile=static/js/game-input-logic.bundle.js --sourcemap",
-    "watch:js": "esbuild static/js/game-input-logic.js --bundle --minify --format=iife --outfile=static/js/game-input-logic.bundle.js --sourcemap --watch"
+    "build:js": "esbuild static/js/game-input-logic.js --bundle --minify --format=iife --outfile=static/js/game-input-logic.bundle.min.js --sourcemap",
+    "watch:js": "esbuild static/js/game-input-logic.js --bundle --minify --format=iife --outfile=static/js/game-input-logic.bundle.min.js --sourcemap --watch"
   },
   "repository": {
     "type": "git",
