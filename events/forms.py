@@ -127,7 +127,7 @@ class LichessStudyGameSubmissionForm(forms.Form):
             Div(
                 Div(
                     css_id="move-list",
-                    css_class="move-list mb-3 ms-md-3",
+                    css_class="move-list mb-3 ms-md-3 rounded-4 bg-light",
                 ),
                 css_id="move-list-wrapper",
                 css_class="col-12 col-md-6",
