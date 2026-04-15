@@ -44,6 +44,20 @@ export function createSinglePlyMoveText (newMove, moveNumber) {
     return newMoveEl;
 }
 
+export function undoLastMove () {
+    if (ply === 0) return;
+    let allMoves = Array.from(moveList.querySelectorAll('.move-text'));
+    let lastMove = allMoves.pop();
+    if (allMoves.length % 2 === 0) {
+        moveList.removeChild(moveList.lastChild);
+    } else {
+        lastMove.remove();
+    }
+    toEnd();
+    updateMoveText();
+    callback();
+}
+
 export function setPly(n) {
     ply = n;
 }
@@ -57,7 +71,7 @@ export function toStart() {
 }
 
 export function toEnd() {
-    ply = moveList.querySelectorAll('.move-text') - 1;
+    ply = moveList.querySelectorAll('.move-text').length;
 }
 
 export function nextMove() {

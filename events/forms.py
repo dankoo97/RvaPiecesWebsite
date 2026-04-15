@@ -73,6 +73,11 @@ class LichessStudyGameSubmissionForm(forms.Form):
         },
         {"id": "to-end", "icon": "bi bi-skip-forward-fill", "title": "To End"},
         {"id": "flip-board", "icon": "bi bi-arrow-down-up", "title": "Flip Board"},
+        {
+            "id": "undo-move",
+            "icon": "bi bi-arrow-counterclockwise",
+            "title": "Undo Move",
+        },
     ]
 
     _lifespan = 90

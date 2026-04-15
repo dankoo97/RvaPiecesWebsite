@@ -75,6 +75,7 @@ export function onDrop (source, target) {
     config.moveTextObj.nextMove();
     config.callback();
     config.moveTextObj.updateMoveText(move);
+    removeSelectedSquare();
 }
 
 export function onSnapEnd () {

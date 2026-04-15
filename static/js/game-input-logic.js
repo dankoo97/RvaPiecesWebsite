@@ -18,6 +18,7 @@ import {
     updateMoveText,
     setCallback as setMoveTextCallback,
     setClickMoveFromListFn,
+    undoLastMove,
 } from './pgn-move-text';
 import { onDragStart, onDrop, onSnapEnd, setConfig as setBoardEventConfig } from './board-events';
 
@@ -52,6 +53,13 @@ function updateStatus (updateBoard = true) {
 
     // Update hidden pgn value
     $pgn.val(game.pgn());
+}
+
+function undoMove () {
+    if (getPly() === 0) return;
+    game.undo();
+    undoLastMove();
+    updateStatus();
 }
 
 function generateFromPgn(pgn) {
@@ -127,6 +135,10 @@ previousMoveButton.onclick = () => {
 
 document.getElementById('flip-board').onclick = () => {
     board.flip();
+}
+
+document.getElementById('undo-move').onclick = () => {
+    undoMove();
 }
 
 // Pgn manipulation buttons
