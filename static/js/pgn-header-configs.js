@@ -1,3 +1,6 @@
+const tagContainer = document.getElementById('tag-container');
+let callback = () => {};
+
 export const headerConfig = {
     Event: {type: 'text', label: 'Event', placeholder: 'Event name'},
     Site: {type: 'text', label: 'Site', placeholder: 'Site'},
@@ -68,3 +71,85 @@ export function applyHeaderConfig (row, key) {
         valueInput.setAttribute('list', datalistId);
     }
 }
+
+export function createHeader (key = "", value = "") {
+    const row = document.createElement('div');
+    row.setAttribute('class', 'input-group mb-3 tag-row');
+
+    let tagList = document.getElementById('common-tags');
+    if (!tagList) {
+        tagList = document.createElement('datalist');
+        tagList.setAttribute('id', 'common-tags');
+        Object.keys(headerConfig).forEach(tag => {
+            const option = document.createElement('option');
+            option.value = tag;
+            tagList.appendChild(option);
+        })
+        document.body.appendChild(tagList);
+    }
+
+    let keyInput = document.createElement('input');
+    keyInput.className = 'form-control tag-key';
+    keyInput.value = key;
+    keyInput.setAttribute('list', 'common-tags');
+    let valueInput = document.createElement('input');
+    valueInput.className = 'form-control tag-value';
+
+    let removeButton = document.createElement('button');
+    removeButton.className = 'btn btn-outline-secondary remove-tag';
+    removeButton.type = 'button';
+    removeButton.innerHTML = '<i class="bi bi-trash"></i>';
+
+    row.appendChild(keyInput);
+    row.appendChild(valueInput);
+    row.appendChild(removeButton);
+
+    applyHeaderConfig(row, key);
+    tagContainer.appendChild(row);
+
+    return { row, keyInput, valueInput, removeButton };
+}
+
+export function updateHeaderRow(key, value) {
+    let valueInput = tagContainer.querySelector(`input[name=${key.toLowerCase()}-value]`);
+    if (!valueInput) {
+        let { valueInput: v } = createHeader(key, value);
+        valueInput = v;
+    }
+
+    switch (valueInput.type) {
+        case 'date':
+            valueInput.valueAsDate = new Date(value);
+            break
+        default:
+            valueInput.value = value;
+    }
+}
+
+export function updateHeadersFromPgn(headers) {
+    for (const [key, value] of Object.entries(headers)) {
+        if (!(value === '?' || value === '')) {
+            updateHeaderRow(key, value);
+        }
+    }
+}
+
+export function setCallback(cb) {
+    callback = cb;
+}
+
+tagContainer.addEventListener('input', event => {
+    if (event.target.classList.contains('tag-key')) {
+        const row = event.target.closest('.tag-row');
+        applyHeaderConfig(row, event.target.value);
+    }
+    callback();
+});
+
+tagContainer.addEventListener('click', event => {
+    if (event.target.classList.contains('remove-tag')) {
+        const row = event.target.closest('.tag-row');
+        row.remove();
+    }
+    callback();
+});
