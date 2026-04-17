@@ -65,7 +65,7 @@ function undoMove () {
 function generateFromPgn(pgn) {
     game.loadPgn(pgn);
     clearMoveList();
-    updateHeadersFromPgn(game.pgn());
+    updateHeadersFromPgn(game.getHeaders());
     updateMoveText(...game.history({verbose:true}));
     setPly(game.history().length);
     updateStatus();
@@ -218,10 +218,6 @@ document.addEventListener('keydown', (event) => {
             break;
     }
 });
-
-document.getElementById('board').onclick = (event) => {
-    const square = event.target.dataset.square;
-};
 
 let pieceBaseUrl = $board.data('piece-url')
 // Google api will add extraneous query parameters which chessboardjs does not expect
