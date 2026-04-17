@@ -113,8 +113,7 @@ export function createHeader (key = "", value = "") {
 export function updateHeaderRow(key, value) {
     let valueInput = tagContainer.querySelector(`input[name=${key.toLowerCase()}-value]`);
     if (!valueInput) {
-        let { valueInput: v } = createHeader(key, value);
-        valueInput = v;
+        ({ valueInput } = createHeader(key, value));
     }
 
     switch (valueInput.type) {
