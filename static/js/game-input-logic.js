@@ -63,7 +63,12 @@ function undoMove () {
 }
 
 function generateFromPgn(pgn) {
-    game.loadPgn(pgn);
+    try {
+        game.loadPgn(pgn);
+    } catch (e) {
+        // Try without comments...
+        game.loadPgn(pgn.replace(/(\{[^}]*\})+/g, ''));
+    }
     clearMoveList();
     updateHeadersFromPgn(game.getHeaders());
     updateMoveText(...game.history({verbose:true}));
@@ -151,14 +156,7 @@ document.getElementById('upload-pgn').onclick = () => {
         if (!file) return;
         const reader = new FileReader();
         reader.onload = (e) => {
-            try {
-                // TODO: Chessjs doesn't seem to like engine comments, so we remove them for now
-                let withoutComments = e.target.result.replace(/(\{[^}]*\})+/g, '');
-                generateFromPgn(withoutComments);
-            } catch (e) {
-                console.error('Error parsing PGN:', e);
-                alert('Error parsing PGN. Please check the console for more details.');
-            }
+            generateFromPgn(e.target.result);
         };
         reader.readAsText(file);
     });

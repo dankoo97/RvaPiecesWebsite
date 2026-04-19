@@ -41,5 +41,7 @@ $board-size: calc(min(100vw - 1rem, 600px));
 }
 
 .selected-square {
+  // Matches with the highlighted square in chessboard.css.
+  // We can't use that css class since chessboard.js will sometimes remove that highlight
   box-shadow: inset 0 0 3px 3px #ff0;
 }
