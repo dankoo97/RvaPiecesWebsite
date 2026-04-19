@@ -5,7 +5,9 @@ from io import StringIO
 from zoneinfo import ZoneInfo
 
 import chess.pgn
-from django.http import HttpResponseForbidden, HttpResponse, QueryDict
+from berserk.exceptions import ApiError, BerserkError
+from django.contrib import messages
+from django.http import HttpResponseForbidden, HttpResponse
 from django.shortcuts import render, redirect
 from django.urls import reverse
 from django.views import generic
@@ -107,17 +109,18 @@ class UploadGameView(SingleObjectMixin, generic.FormView):
                 return HttpResponse("Invalid PGN", status=400)
 
             study = form.cleaned_data["study"]
-            chapters = study.add_chapters(str(game))
-            query = QueryDict(mutable=True)
-            query.setlist("chapters", [c["id"] for c in chapters])
-            query.setlist("success", ["true"])
-            query.setlist("study_id", [study.study_id])
-
             # TODO: Setup email server to send confirmation message?
-
-            return redirect(
-                reverse("upload_game", kwargs={"slug": study.event.slug}, query=query)
-            )
+            try:
+                study.add_chapters(str(game))
+            except ApiError as e:
+                messages.error(request, f"Error adding chapter: {e}")
+            except BerserkError as e:
+                messages.error(request, f"Error adding chapter: {e}")
+            else:
+                messages.success(
+                    request, f"Game added successfully to study! {study.study_url}"
+                )
+                return redirect(reverse("event", kwargs={"slug": study.event.slug}))
         return HttpResponse(form.errors, status=400)
 
 
