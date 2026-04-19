@@ -15,17 +15,4 @@
             crossorigin="anonymous"></script>
     <script src="{% static 'js/chessboard-1.0.0.min.js' %}"></script>
     <script src="{% static 'js/game-input-logic.bundle.min.js' %}"></script>
-    {% if success %}
-        <p>
-            <strong>Success!</strong>
-        </p>
-        <p>See your chapter in the study here:</p>
-        <ul>
-            {% for chapter in chapter_ids %}
-                <li>
-                    <a href="{{ study.study_url }}/{{ chapter }}">{{ study.study_url }}/{{ chapter }}</a>
-                </li>
-            {% endfor %}
-        </ul>
-    {% endif %}
 {% endblock content %}
