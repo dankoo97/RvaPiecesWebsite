@@ -2,6 +2,12 @@ const moveList = document.getElementById("move-list");
 let ply = 0;
 let callback = () => {};
 let clickMoveFromListFn = null;
+let deleteMoveFromListFn = null;
+
+const moveTextTableView = () => document.getElementById('id_move_table_view').checked;
+
+const contextMenu = document.getElementById('move-list-menu');
+let contextMenuIndex = null;
 
 export function updateMoveText (...newMoves) {
     let allMoves = Array.from(moveList.querySelectorAll('.move-text'));
@@ -14,33 +20,28 @@ export function updateMoveText (...newMoves) {
         }
     }
 
+    setCurrentPositionCls();
+}
+
+export function setCurrentPositionCls () {
+    let allMoves = Array.from(moveList.querySelectorAll('.move-text'));
     if (ply > 0) {
         const currentMove = allMoves[ply-1];
         currentMove.classList.add('current-position');
-        currentMove.scrollIntoView({behavior: 'smooth', block: 'nearest', inline: 'nearest'});
-    } else {
-        moveList.scrollTop = 0;
     }
 }
 
 export function createSinglePlyMoveText (newMove, moveNumber) {
-    let newMoveEl = document.createElement('span');
+    let newMoveEl = document.createElement('div');
     let moveText = newMove.san;
-    let row = moveList.children[Math.floor((moveNumber-1)/2)];
-    if (!row) {
-        row = document.createElement('div');
-        row.classList.add('row', 'align-items-center', 'move-row', 'mt-1');
-
-        const moveNumberEl = document.createElement('span');
-        moveNumberEl.classList.add('col-1', 'move-number', 'ms-3');
-        moveNumberEl.innerHTML = `${Math.floor((moveNumber-1)/2) + 1}.`;
-        row.appendChild(moveNumberEl);
-
-        moveList.appendChild(row);
+    if (moveNumber % 2 === 1) {
+        newMoveEl.innerHTML = `${Math.floor(moveNumber/2) + 1}. ${moveText}`;
+    } else {
+        newMoveEl.innerHTML = moveText;
     }
-    newMoveEl.innerHTML = moveText;
-    newMoveEl.classList.add('col-3', 'move-text', 'ms-3');
-    row.appendChild(newMoveEl);
+    newMoveEl.classList.add('move-text', 'mx-1', 'rounded-2', 'px-1');
+    moveList.appendChild(newMoveEl);
+
     return newMoveEl;
 }
 
@@ -55,6 +56,7 @@ export function undoLastMove () {
     }
     toEnd();
     updateMoveText();
+    setCurrentPositionCls();
     callback();
 }
 
@@ -107,6 +109,7 @@ export function setClickMoveFromListFn(fn) {
                     setPly(Array.from(moveList.querySelectorAll('.move-text')).indexOf(move) + 1);
                     updateMoveText();
                 }
+                setCurrentPositionCls();
                 callback();
             }
             break;
@@ -115,3 +118,57 @@ export function setClickMoveFromListFn(fn) {
     }
     moveList.addEventListener('click', clickMoveFromListFn);
 }
+
+export function setDeleteMoveFromListFn(fn) {
+    deleteMoveFromListFn = fn;
+}
+
+function deleteMoveFromHere(moveIndex) {
+    const allMoves = Array.from(moveList.querySelectorAll('.move-text'));
+    while (allMoves.length > moveIndex) {
+        allMoves.pop().remove();
+        deleteMoveFromListFn();
+    }
+    toEnd();
+    setCurrentPositionCls();
+}
+
+function showContextMenu(x, y, moveIndex) {
+    contextMenuIndex = moveIndex;
+    contextMenu.style.left = `${x + window.scrollX}px`;
+    contextMenu.style.top = `${y + window.scrollY}px`;
+    contextMenu.classList.toggle('show');
+}
+
+function hideContextMenu() {
+    contextMenu.classList.remove('show');
+    contextMenuIndex = null;
+}
+
+document.getElementById('id_move_table_view').addEventListener('change', () => {
+    moveList.classList.toggle('move-list--table', moveTextTableView());
+    moveList.classList.toggle('move-list--inline', !moveTextTableView());
+});
+
+moveList.addEventListener('contextmenu', (event) => {
+    const move = event.target.closest('.move-text');
+    if (!move) return;
+
+    event.preventDefault();
+    const moveIndex = Array.from(moveList.querySelectorAll('.move-text')).indexOf(move);
+    showContextMenu(event.clientX, event.clientY, moveIndex);
+});
+
+document.addEventListener('click', hideContextMenu);
+document.addEventListener('scroll', hideContextMenu);
+window.addEventListener('resize', hideContextMenu);
+document.addEventListener('keydown', (event) => {
+    if (event.key === 'Escape') hideContextMenu();
+});
+
+document.getElementById('delete-from-here-button').addEventListener('click', () => {
+    if (contextMenuIndex === null) return;
+    deleteMoveFromHere(contextMenuIndex);
+    hideContextMenu();
+    callback();
+})

@@ -3,6 +3,11 @@ $board-size: calc(min(100vw - 1rem, 600px));
 #board-wrapper {
   width: $board-size;
   aspect-ratio: 1 / 1;
+  resize: horizontal;
+  overflow: auto;
+  min-width: 280px;
+  min-height: 280px;
+  max-width: 100%;
 }
 
 #board {
@@ -11,8 +16,28 @@ $board-size: calc(min(100vw - 1rem, 600px));
   touch-action: none;
 }
 
+.board-column {
+  width: fit-content;
+}
+
+.board-manipulation-buttons {
+  display: flex;
+  justify-content: flex-start;
+  //width: 100%;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.board-manipulation-buttons .btn-group {
+  justify-content: space-between;
+}
+
+.board-manipulation-buttons .board-manipulation-button {
+  flex: 1 1 auto;
+}
+
 .current-position {
-  background-color: #ff0;
+  background-color: #ececbd;
 }
 
 #move-list-wrapper {
@@ -20,24 +45,70 @@ $board-size: calc(min(100vw - 1rem, 600px));
   flex-direction: column;
   min-height: 0;
   max-height: $board-size;
-
 }
 
 .move-list {
   height: $board-size;
-  width: 50%;
-  overflow-y: scroll;
+  width: 100%;
+  overflow-y: auto;
   overflow-x: hidden;
   font-size: 1.25rem;
   border: 1px solid black;
+  padding: 0.5rem;
 }
 
 .move-text {
-  text-wrap: nowrap;
-  display: block;
+  box-sizing: border-box;
+  border: 1px solid transparent;
   &:hover {
     cursor: pointer;
+    border: 1px solid black;
   }
+}
+
+.move-list.move-list--inline {
+  display: block;
+  white-space: normal;
+}
+
+.move-list.move-list--inline .move-text {
+  display: inline-block;
+  white-space: nowrap;
+  margin-right: 0.25rem;
+  vertical-align: top;
+}
+
+.move-list.move-list--table {
+  display: grid;
+  grid-template-columns: max-content 1fr;
+  column-gap: 1rem;
+  row-gap: 0.25rem;
+  align-content: start;
+  justify-content: start;
+}
+
+.move-list.move-list--table .move-number {
+  flex: 0 0 auto;
+}
+
+.move-list.move-list--table .move-text {
+  display: block;
+  width: fit-content;
+  text-wrap: nowrap;
+}
+
+.move-list.move-list--table .move-text.current-position {
+  display: inline-block;
+  width: fit-content;
+  border-radius: 0.25rem;
+}
+
+.move-list.move-list--table .move-text:nth-child(odd) {
+  grid-column:  1;
+}
+
+.move-list.move-list--table .move-text:nth-child(even) {
+  grid-column: 2;
 }
 
 .selected-square {

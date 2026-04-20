@@ -115,65 +115,64 @@ class LichessStudyGameSubmissionForm(forms.Form):
 
         board_wrapper = Div(
             Div(
-                Div(
-                    css_id="board",
-                    css_class="game-board",
-                    data_piece_url=static("images/chesspieces/wikipedia/"),
-                    data_event_name=event.name,
-                    data_event_location=event.location,
+                css_id="board",
+                css_class="game-board",
+                data_piece_url=static("images/chesspieces/wikipedia/"),
+                data_event_name=event.name,
+                data_event_location=event.location,
+            ),
+            css_id="board-wrapper",
+            css_class="col-12 col-md-6 mb-3 mb-md-0",
+        )
+
+        move_list_wrapper = Div(
+            Div(
+                css_id="move-list",
+                css_class="move-list mb-3 ms-md-3 rounded-4 bg-light move-list--inline",
+            ),
+            css_id="move-list-wrapper",
+            css_class="col-12 col-md-6",
+        )
+
+        board_buttons = Div(
+            Div(
+                *(
+                    self.generate_button_layout(
+                        self.board_manipulation_buttons[:4],
+                        "btn-outline-dark btn-small board-manipulation-button",
+                    )
                 ),
-                Div(
-                    Div(
-                        *(
-                            self.generate_button_layout(
-                                self.board_manipulation_buttons[:4],
-                                "btn-outline-dark btn-small board-manipulation-button",
-                            )
-                        ),
-                        css_class="btn-group me-2 ms-md-3",
-                        role="group",
-                    ),
-                    Div(
-                        *(
-                            self.generate_button_layout(
-                                self.board_manipulation_buttons[4:],
-                                "btn btn-outline-dark btn-small board-manipulation-button",
-                            )
-                        ),
-                        css_class="btn-group me-2",
-                        role="group",
-                    ),
-                    Div(
-                        *(
-                            self.generate_button_layout(
-                                [
-                                    {
-                                        "id": "board-settings-button",
-                                        "icon": "bi bi-gear-fill",
-                                        "title": "Board Settings",
-                                    }
-                                ],
-                                "btn btn-outline-dark btn-small board-manipulation-button",
-                            )
-                        ),
-                        css_class="btn-group me-2",
-                        role="group",
-                    ),
-                    css_class="btn-toolbar board-manipulation-buttons",
-                    role="toolbar",
-                ),
-                css_id="board-wrapper",
-                css_class="col-12 col-md-6 mb-3 mb-md-0",
+                css_class="btn-group me-2",
+                role="group",
             ),
             Div(
-                Div(
-                    css_id="move-list",
-                    css_class="move-list mb-3 ms-md-3 rounded-4 bg-light",
+                *(
+                    self.generate_button_layout(
+                        self.board_manipulation_buttons[4:],
+                        "btn btn-outline-dark btn-small board-manipulation-button",
+                    )
                 ),
-                css_id="move-list-wrapper",
-                css_class="col-12 col-md-6",
+                css_class="btn-group me-2",
+                role="group",
             ),
-            css_class="row g-3 mb-3 align-items-start",
+            Div(
+                *(
+                    self.generate_button_layout(
+                        [
+                            {
+                                "id": "board-settings-button",
+                                "icon": "bi bi-gear-fill",
+                                "title": "Board Settings",
+                            }
+                        ],
+                        "btn btn-outline-dark btn-small board-manipulation-button",
+                    )
+                ),
+                css_class="btn-group me-2",
+                role="group",
+            ),
+            css_class="btn-toolbar justify-content-center board-manipulation-buttons",
+            role="toolbar",
         )
 
         header_wrapper = Div(
@@ -213,37 +212,65 @@ class LichessStudyGameSubmissionForm(forms.Form):
                 Div(
                     Div(
                         Div(
-                            Div(
-                                HTML(
-                                    """
-                                        <h2>Board Settings</h2>
-                                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                                    """
-                                ),
-                                css_class="modal-header",
+                            Field(
+                                "draggable_pieces",
+                                role="switch",
+                                css_class="form-check-input",
+                                wrapper_class="form-check form-switch",
                             ),
-                            Div(
-                                Field("draggable_pieces"),
-                                Field("click_to_move"),
-                                Field("move_table_view"),
-                                css_class="modal-body",
+                            Field(
+                                "click_to_move",
+                                role="switch",
+                                css_class="form-check-input",
+                                wrapper_class="form-check form-switch",
                             ),
+                            Field(
+                                "move_table_view",
+                                role="switch",
+                                css_class="form-check-input",
+                                wrapper_class="form-check form-switch",
+                            ),
+                            css_class="modal-body",
                         ),
                         css_class="modal-content",
                     ),
                     css_class="modal-dialog modal-dialog-centered modal-lg",
                 ),
+                title="Board Settings",
                 css_id="board-settings-modal",
             )
+        )
+
+        context_menu = Div(
+            StrictButton(
+                css_id="delete-from-here-button",
+                css_class="btn btn-outline-danger btn-small",
+                content="""
+                    <i class="bi bi-trash"></i>
+                    Delete From Here
+                """,
+                data_action="delete-from-here",
+            ),
+            css_id="move-list-menu",
+            css_class="dropdown-menu move-list-menu",
         )
 
         self.helper.layout = Layout(
             Field("pgn"),
             Field("study"),
-            board_wrapper,
+            Div(
+                Div(
+                    board_wrapper,
+                    board_buttons,
+                    css_class="board-column col-12 col-md-6 d-flex flex-column",
+                ),
+                move_list_wrapper,
+                css_class="row g-3 mb-3 align-items-start",
+            ),
             header_wrapper,
             pgn_buttons_wrapper,
             board_settings_modal,
+            context_menu,
         )
 
     @staticmethod

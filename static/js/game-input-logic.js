@@ -18,7 +18,7 @@ import {
     updateMoveText,
     setCallback as setMoveTextCallback,
     setClickMoveFromListFn,
-    undoLastMove,
+    undoLastMove, setDeleteMoveFromListFn, setCurrentPositionCls,
 } from './pgn-move-text';
 import { onDragStart, onDrop, onSnapEnd, setConfig as setBoardEventConfig } from './board-events';
 
@@ -50,6 +50,8 @@ function updateStatus (updateBoard = true) {
     // Update board manip buttons
     nextMoveButton.disabled = getPly() === game.history().length;
     previousMoveButton.disabled = getPly() === 0;
+
+    setCurrentPositionCls();
 
     // Update hidden pgn value
     $pgn.val(game.pgn());
@@ -99,15 +101,12 @@ function updateHeader (key, value) {
 }
 
 function resizeBoard () {
-    const boardElement = document.getElementById('board');
-    if (!boardElement) return;
-
-    const size = Math.min(window.innerWidth - 16, 600);
-    boardElement.style.width = `${size}px`;
-    boardElement.style.height = `${size}px`;
+    if (!board) return;
     board.resize();
 }
-window.addEventListener('resize orientationchange', resizeBoard);
+
+window.addEventListener('resize', resizeBoard);
+window.addEventListener('orientationchange', resizeBoard);
 
 document.getElementById('add-header-button').onclick = () => {
     createHeader();
@@ -200,6 +199,17 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 });
 
+document.addEventListener('DOMContentLoaded', () => {
+    const boardWrapper = document.getElementById('board-wrapper');
+    if (!boardWrapper) return;
+
+    const observer = new ResizeObserver(() => {
+        resizeBoard();
+    })
+
+    observer.observe(boardWrapper);
+});
+
 document.addEventListener('keydown', (event) => {
     switch (event.key) {
         case "ArrowRight":
@@ -231,6 +241,7 @@ game = new Chess();
 setHeaderCallback(updateStatus);
 setMoveTextCallback(updateStatus);
 setClickMoveFromListFn('go-to')
+setDeleteMoveFromListFn(() => {game.undo();})
 board = Chessboard('board', {
     draggable: document.getElementById('id_draggable_pieces').checked,
     position: 'start',

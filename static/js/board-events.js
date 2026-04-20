@@ -1,8 +1,8 @@
 let config = {};
 let selectedSquare = null;
 
-let clickToMove = () =>  document.getElementById('id_click_to_move').checked;
-let draggablePieces = () => document.getElementById('id_draggable_pieces').checked;
+const clickToMove = () =>  document.getElementById('id_click_to_move').checked;
+const draggablePieces = () => document.getElementById('id_draggable_pieces').checked;
 
 export function setConfig(options) {
     if (options.game) config.game = options.game;
