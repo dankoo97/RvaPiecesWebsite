@@ -201,6 +201,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
 document.addEventListener('DOMContentLoaded', () => {
     const boardWrapper = document.getElementById('board-wrapper');
+    const boardEl = document.getElementById('board');
     if (!boardWrapper) return;
 
     const observer = new ResizeObserver(() => {
@@ -208,6 +209,34 @@ document.addEventListener('DOMContentLoaded', () => {
     })
 
     observer.observe(boardWrapper);
+
+    let activeTouchCount = 0;
+    boardEl.addEventListener('touchstart', (event) => {
+        activeTouchCount = event.touches.length;
+
+        // One finger, treat as board interaction
+        if (activeTouchCount === 1) {
+            event.preventDefault();
+        }
+    }, { passive: false });
+
+    boardEl.addEventListener('touchmove', (event) => {
+        activeTouchCount = event.touches.length;
+
+        // One finger, prevent board from scrolling
+        // Two or more allow the browser to scroll
+        if (activeTouchCount === 1) {
+            event.preventDefault();
+        }
+    })
+
+    boardEl.addEventListener('touchend', (event) => {
+        activeTouchCount = event.touches.length;
+    })
+
+    boardEl.addEventListener('touchcancel', (event) => {
+        activeTouchCount = event.touches.length;
+    })
 });
 
 document.addEventListener('keydown', (event) => {
