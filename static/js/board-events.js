@@ -1,6 +1,9 @@
 let config = {};
 let selectedSquare = null;
 
+let clickToMove = () =>  document.getElementById('id_click_to_move').checked;
+let draggablePieces = () => document.getElementById('id_draggable_pieces').checked;
+
 export function setConfig(options) {
     if (options.game) config.game = options.game;
     if (options.moveTextObj) config.moveTextObj = options.moveTextObj;
@@ -10,7 +13,7 @@ export function setConfig(options) {
 
 export function onDragStart (source, piece, position, orientation) {
     // Check if the game is over
-    if (config.game.isGameOver()) return false;
+    if (config.game.isGameOver() || !draggablePieces()) return false;
 
     // Check if the piece is a valid piece for the current turn
     if ((config.moveTextObj.getPly() % 2 === 0 && piece.search(/^b/) !== -1) || config.moveTextObj.getPly() % 2 === 1 && piece.search(/^w/) !== -1) {
@@ -83,6 +86,7 @@ export function onSnapEnd () {
 }
 
 function setSelectedSquare(square) {
+    if (!clickToMove()) return;
     removeSelectedSquare();
     square.classList.add('selected-square');
     selectedSquare = square;

@@ -146,6 +146,10 @@ document.getElementById('undo-move').onclick = () => {
     undoMove();
 }
 
+document.getElementById('board-settings-button').onclick = () => {
+    $('#board-settings-modal').modal('show');
+}
+
 // Pgn manipulation buttons
 document.getElementById('upload-pgn').onclick = () => {
     let fileInput = document.createElement('input');
@@ -228,7 +232,7 @@ setHeaderCallback(updateStatus);
 setMoveTextCallback(updateStatus);
 setClickMoveFromListFn('go-to')
 board = Chessboard('board', {
-    draggable: true,
+    draggable: document.getElementById('id_draggable_pieces').checked,
     position: 'start',
     onDragStart: onDragStart,
     onDrop: onDrop,

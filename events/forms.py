@@ -1,5 +1,6 @@
 import datetime
 
+from crispy_forms.bootstrap import FormActions, Modal
 from django import forms
 from django.templatetags.static import static
 
@@ -42,6 +43,25 @@ class LichessStudyGameSubmissionForm(forms.Form):
         queryset=LichessStudy.objects.all(), label="Lichess Study", empty_label=None
     )
     pgn = forms.CharField(widget=forms.HiddenInput, required=True, label="PGN Preview")
+
+    # Board settings
+    draggable_pieces = forms.BooleanField(
+        label="Draggable Pieces",
+        required=False,
+        initial=True,
+        widget=forms.CheckboxInput(attrs={"class": "form-check-input"}),
+    )
+    click_to_move = forms.BooleanField(
+        label="Click to Move",
+        required=False,
+        initial=True,
+        widget=forms.CheckboxInput(attrs={"class": "form-check-input"}),
+    )
+    move_table_view = forms.BooleanField(
+        label="Move Table View",
+        required=False,
+    )
+
     text_manipulation_buttons = [
         {
             "id": "upload-pgn",
@@ -123,6 +143,22 @@ class LichessStudyGameSubmissionForm(forms.Form):
                         css_class="btn-group me-2",
                         role="group",
                     ),
+                    Div(
+                        *(
+                            self.generate_button_layout(
+                                [
+                                    {
+                                        "id": "board-settings-button",
+                                        "icon": "bi bi-gear-fill",
+                                        "title": "Board Settings",
+                                    }
+                                ],
+                                "btn btn-outline-dark btn-small board-manipulation-button",
+                            )
+                        ),
+                        css_class="btn-group me-2",
+                        role="group",
+                    ),
                     css_class="btn-toolbar board-manipulation-buttons",
                     role="toolbar",
                 ),
@@ -154,20 +190,51 @@ class LichessStudyGameSubmissionForm(forms.Form):
             css_id="header-root",
         )
 
-        pgn_buttons_wrapper = Div(
-            Submit("submit", "Submit Game", css_class="btn-small me-2"),
+        pgn_buttons_wrapper = FormActions(
             Div(
-                *(
-                    self.generate_button_layout(
-                        self.text_manipulation_buttons,
-                        "btn btn-outline-dark btn-small text-manipulation-button",
-                    )
+                Submit("submit", "Submit Game", css_class="btn-small me-2"),
+                Div(
+                    *(
+                        self.generate_button_layout(
+                            self.text_manipulation_buttons,
+                            "btn btn-outline-dark btn-small text-manipulation-button",
+                        )
+                    ),
+                    css_class="btn-group text-manipulation-buttons",
+                    role="group",
                 ),
-                css_class="btn-group text-manipulation-buttons",
-                role="group",
-            ),
-            css_class="container btn-toolbar bg-light-subtle p-2 my-4 rounded",
-            role="toolbar",
+                css_class="container btn-toolbar bg-light-subtle p-2 my-4 rounded",
+                role="toolbar",
+            )
+        )
+
+        board_settings_modal = Div(
+            Modal(
+                Div(
+                    Div(
+                        Div(
+                            Div(
+                                HTML(
+                                    """
+                                        <h2>Board Settings</h2>
+                                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                    """
+                                ),
+                                css_class="modal-header",
+                            ),
+                            Div(
+                                Field("draggable_pieces"),
+                                Field("click_to_move"),
+                                Field("move_table_view"),
+                                css_class="modal-body",
+                            ),
+                        ),
+                        css_class="modal-content",
+                    ),
+                    css_class="modal-dialog modal-dialog-centered modal-lg",
+                ),
+                css_id="board-settings-modal",
+            )
         )
 
         self.helper.layout = Layout(
@@ -176,6 +243,7 @@ class LichessStudyGameSubmissionForm(forms.Form):
             board_wrapper,
             header_wrapper,
             pgn_buttons_wrapper,
+            board_settings_modal,
         )
 
     @staticmethod
