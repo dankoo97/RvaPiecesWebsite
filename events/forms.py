@@ -1,6 +1,6 @@
 import datetime
 
-from crispy_forms.bootstrap import FormActions, Modal
+from crispy_forms.bootstrap import FormActions, Modal, StrictButton
 from django import forms
 from django.templatetags.static import static
 
@@ -127,7 +127,7 @@ class LichessStudyGameSubmissionForm(forms.Form):
                         *(
                             self.generate_button_layout(
                                 self.board_manipulation_buttons[:4],
-                                "btn btn-outline-dark btn-small board-manipulation-button",
+                                "btn-outline-dark btn-small board-manipulation-button",
                             )
                         ),
                         css_class="btn-group me-2 ms-md-3",
@@ -249,17 +249,15 @@ class LichessStudyGameSubmissionForm(forms.Form):
     @staticmethod
     def generate_button_layout(buttons, css_class=""):
         for i, button in enumerate(buttons):
-            yield HTML(f"""
-                <button
-                    id="{button["id"]}"
-                    type="button"
-                    class="{css_class}"
-                    title="{button["title"]}"
-                    >
-                        {"" if "text" not in button else "<span>" + button["text"] + "</span>"}
-                        <i class="{button["icon"]}"></i>
-                </button>
-            """)
+            yield StrictButton(
+                css_id=button["id"],
+                css_class=css_class,
+                title=button["title"],
+                content=f"""
+                    {"" if "text" not in button else "<span>" + button["text"] + "</span>"}
+                    <i class="{button["icon"]}"></i>
+                """,
+            )
 
     @staticmethod
     def get_relevant_studies(event):
