@@ -43,9 +43,22 @@ class EventView(generic.DetailView):
         if "_study" in request.POST:
             study_id = request.POST["study_id"]
             tournament_date = request.POST["tournament_date"]
-            LichessStudy.objects.create(
-                event=self.object, study_id=study_id, tournament_date=tournament_date
-            )
+            collision = LichessStudy.objects.filter(study_id=study_id)
+            if not collision.exists():
+                LichessStudy.objects.create(
+                    event=self.object,
+                    study_id=study_id,
+                    tournament_date=tournament_date,
+                )
+            elif collision.exists() and collision[0].event is None:
+                collision[0].event = self.object
+            elif collision.exists() and collision[0].event != self.object:
+                messages.error(
+                    request,
+                    f"Study already exists for another event: {collision[0].event.name}",
+                )
+            elif collision.exists() and collision[0].event == self.object:
+                messages.error(request, "This study already exists for this event.")
             return redirect(self.object.get_absolute_url())
 
         return None
