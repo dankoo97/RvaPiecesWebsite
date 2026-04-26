@@ -20,5 +20,11 @@
     {% if next_month %}
         {% include "events/calendar.html" with month=next_month.calendar datetime=next_month.datetime event_instances=event_instances %}
     {% endif %}
+    <script>
+        let today = new Date();
+        let calendarDays = Array.from(document.getElementsByClassName("calendar-day"));
+        let todayEl = calendarDays.filter(day => day.dataset.date === today.toISOString().split('T')[0]);
+        todayEl[0].classList.add("bg-info-subtle");
+    </script>
     {% include "events/list.html" with events=events %}
 {% endblock content %}
