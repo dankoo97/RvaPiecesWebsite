@@ -260,6 +260,18 @@ document.addEventListener('keydown', (event) => {
     }
 });
 
+document.getElementById('share-to-discord-accordion').addEventListener('show.bs.collapse', (e) => {
+    document.getElementById('id_share_to_discord').value = "True"
+    document.getElementById('share-to-discord-icon').classList.remove('bi-x-lg')
+    document.getElementById('share-to-discord-icon').classList.add('bi-check-lg')
+});
+
+document.getElementById('share-to-discord-accordion').addEventListener('hide.bs.collapse', (e) => {
+    document.getElementById('id_share_to_discord').value = "False"
+    document.getElementById('share-to-discord-icon').classList.remove('bi-check-lg')
+    document.getElementById('share-to-discord-icon').classList.add('bi-x-lg')
+});
+
 let pieceBaseUrl = $board.data('piece-url')
 // Google api will add extraneous query parameters which chessboardjs does not expect
 if (pieceBaseUrl) {

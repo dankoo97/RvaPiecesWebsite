@@ -7,7 +7,7 @@ from django.templatetags.static import static
 from events.models import LichessStudy
 
 from crispy_forms.helper import FormHelper
-from crispy_forms.layout import Submit, Layout, HTML, Div, Button, Field
+from crispy_forms.layout import Submit, Layout, HTML, Div, Button, Field, MultiField
 
 
 class LichessStudyForm(forms.ModelForm):
@@ -60,6 +60,35 @@ class LichessStudyGameSubmissionForm(forms.Form):
     move_table_view = forms.BooleanField(
         label="Move Table View",
         required=False,
+    )
+    share_to_discord = forms.BooleanField(
+        label="Share to Discord",
+        required=False,
+        initial=False,
+        widget=forms.HiddenInput,
+    )
+
+    discord_white_player = forms.CharField(
+        label="White player's discord",
+        required=False,
+        widget=forms.TextInput(attrs={"placeholder": "username"}),
+    )
+
+    discord_black_player = forms.CharField(
+        label="Black player's discord",
+        required=False,
+        widget=forms.TextInput(attrs={"placeholder": "username"}),
+    )
+
+    discord_game_orientation = forms.ChoiceField(
+        label="Game Orientation",
+        required=False,
+        choices=[
+            ("white", "White"),
+            ("black", "Black"),
+        ],
+        initial="white",
+        widget=forms.Select(attrs={"class": "form-select"}),
     )
 
     text_manipulation_buttons = [
@@ -207,6 +236,37 @@ class LichessStudyGameSubmissionForm(forms.Form):
             )
         )
 
+        share_to_discord_accordion = Div(
+            Div(
+                HTML("""
+                    <h2 class="accordion-header" id="share-to-discord-header">
+                        <button type="button" data-bs-toggle="collapse" data-bs-target="#share-to-discord-collapse" aria-expanded="false" aria-controls="share-to-discord-collapse" class="accordion-button collapsed">
+                            <i class="bi bi-x-lg me-2" id="share-to-discord-icon"></i>
+                            Share to discord
+                        </button>
+                    </h2>
+                """),
+                Div(
+                    Div(
+                        MultiField(
+                            "Discord Information",
+                            # PrependedText("discord_white_player", "@"),
+                            # PrependedText("discord_black_player", "@"),
+                            "discord_game_orientation",
+                        ),
+                        css_class="accordion-body",
+                    ),
+                    css_id="share-to-discord-collapse",
+                    css_class="accordion-collapse collapse",
+                    data_bs_parent="#share-to-discord-accordion",
+                ),
+                css_class="accordion-item",
+            ),
+            css_class="accordion",
+            css_id="share-to-discord-accordion",
+        )
+
+        # noinspection PyTypeChecker
         board_settings_modal = Div(
             Modal(
                 Div(
@@ -257,6 +317,7 @@ class LichessStudyGameSubmissionForm(forms.Form):
 
         self.helper.layout = Layout(
             Field("pgn"),
+            Field("share_to_discord"),
             Field("study"),
             Div(
                 Div(
@@ -268,6 +329,7 @@ class LichessStudyGameSubmissionForm(forms.Form):
                 css_class="row g-3 mb-3 align-items-start",
             ),
             header_wrapper,
+            share_to_discord_accordion,
             pgn_buttons_wrapper,
             board_settings_modal,
             context_menu,

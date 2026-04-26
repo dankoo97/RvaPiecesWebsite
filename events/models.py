@@ -6,6 +6,7 @@ from io import StringIO
 
 import berserk
 import chess.pgn
+from discord_webhook.webhook import DiscordWebhook, DiscordEmbed
 
 from django.db import models
 from django.utils.text import slugify
@@ -54,6 +55,9 @@ class Event(models.Model):
     published_version = models.ForeignKey(
         "self", on_delete=models.SET_NULL, blank=True, null=True, related_name="+"
     )
+
+    discord_channel_id = models.CharField(max_length=100, null=True, blank=True)
+    discord_webhook_urls = models.JSONField(default=dict, null=True, blank=True)
 
     tournament_event_link = models.URLField(blank=True)
     tournament_pairings_link = models.URLField(blank=True)
@@ -106,7 +110,13 @@ class Event(models.Model):
                 tournament_event_link=self.tournament_event_link,
                 tournament_pairings_link=self.tournament_pairings_link,
                 tournament_standings_link=self.tournament_standings_link,
+                discord_channel_id=self.discord_channel_id,
+                discord_webhook_urls=self.discord_webhook_urls,
             )
+
+            if old_published_version:
+                for study in old_published_version.lichess_studies.values():
+                    study.event = published
 
         except Exception as e:
             # Skip saving the published version if there is an error
@@ -245,7 +255,8 @@ class LichessStudy(models.Model):
         max_length=100, unique=True, null=False, blank=False, primary_key=True
     )
     chapters = models.JSONField(default=list, encoder=PrettyJSONEncoder)
-    tournament_date = models.DateField()
+    tournament_date = models.DateField(default=datetime.date.today)
+    # default_values = models.JSONField(default=dict, encoder=PrettyJSONEncoder)
 
     def save(self, *args, **kwargs):
         if "lichess" in self.study_id:
@@ -264,20 +275,65 @@ class LichessStudy(models.Model):
     def study_url(self):
         return f"https://lichess.org/study/{self.study_id}"
 
-    def add_chapters(self, pgn, chapter_name=None):
+    def add_chapters(self, pgn, orientation=None, chapter_name=None):
         """
         https://lichess.org/api#tag/studies/POST/api/study/{studyId}/import-pgn
         :param pgn: Pgn representation of the chapters
+        :param orientation: POV of white or black
         :param chapter_name: Name of the chapter
         :return: List of chapters created
         """
         session = berserk.TokenSession(os.environ.get("LICHESS_API_TOKEN"))
         client = berserk.Client(session=session)
         created_chapters = client.studies.import_pgn(
-            study_id=self.study_id, pgn=pgn, chapter_name=chapter_name
+            study_id=self.study_id,
+            pgn=pgn,
+            chapter_name=chapter_name,
+            orientation=orientation,
         )
         self.chapters.append(created_chapters)
         return created_chapters
+
+    def share_to_discord(
+        self,
+        game: chess.pgn.Game,
+        lichess_chapter_id: str,
+        white_player_discord=None,
+        black_player_discord=None,
+    ):
+        """
+        :param game: The game to share to discord
+        :param lichess_chapter_id: The chapter id for the game on Lichess.com
+        :param white_player_discord: The discord username of the white player
+        :param black_player_discord: The discord username of the black player
+        """
+
+        webhook = DiscordWebhook(url=self.event.discord_webhook_urls["study"])
+        chapter_url = f"{self.study_url}/{lichess_chapter_id}"
+        dev = {
+            "name": "dan_koontz",
+            "id": "906504873976147979",
+        }
+        webhook.allowed_mentions = {"parse": ["users"]}
+
+        embed = DiscordEmbed(
+            description=f"""
+                Check out this game!
+
+                Questions? Contact the developer: [@{dev["name"]}](https://discord.com/users/{dev["id"]})
+            """,
+        )
+        embed.set_url(url=chapter_url)
+        embed.set_footer(text="This game was submitted via rvapieces.org")
+        embed.set_image(url=f"{chapter_url}.gif")
+        embed.set_timestamp()
+        embed.set_color(0x9246E3)
+
+        if "White" in game.headers and "Black" in game.headers:
+            embed.set_title(f"{game.headers['White']} vs {game.headers['Black']}")
+
+        webhook.add_embed(embed)
+        webhook.execute()
 
     def download_study(self):
         """

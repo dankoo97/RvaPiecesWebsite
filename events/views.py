@@ -11,6 +11,7 @@ from django.http import HttpResponseForbidden, HttpResponse
 from django.shortcuts import render, redirect
 from django.urls import reverse
 from django.views import generic
+from django.views.decorators.cache import cache_control
 from django.views.generic.detail import SingleObjectMixin
 
 from events.forms import LichessStudyForm, LichessStudyGameSubmissionForm
@@ -104,19 +105,34 @@ class UploadGameView(SingleObjectMixin, generic.FormView):
         form = LichessStudyGameSubmissionForm(self.object, request.POST)
         if form.is_valid():
             pgn_text = form.cleaned_data["pgn"]
+            share_to_discord = form.cleaned_data["share_to_discord"]
             game = chess.pgn.read_game(StringIO(pgn_text))
             if game is None:
                 return HttpResponse("Invalid PGN", status=400)
 
+            white_player_discord = form.cleaned_data["discord_white_player"] or None
+            black_player_discord = form.cleaned_data["discord_black_player"] or None
+            orientation = (
+                form.cleaned_data["discord_game_orientation"].lower() or "white"
+            )
+
             study = form.cleaned_data["study"]
             # TODO: Setup email server to send confirmation message?
             try:
-                study.add_chapters(str(game))
+                chapters = study.add_chapters(str(game), orientation=orientation)
             except ApiError as e:
                 messages.error(request, f"Error adding chapter: {e}")
             except BerserkError as e:
                 messages.error(request, f"Error adding chapter: {e}")
             else:
+                if share_to_discord:
+                    for chapter in chapters:
+                        study.share_to_discord(
+                            game,
+                            chapter["id"],
+                            white_player_discord,
+                            black_player_discord,
+                        )
                 messages.success(
                     request, f"Game added successfully to study! {study.study_url}"
                 )
@@ -124,6 +140,7 @@ class UploadGameView(SingleObjectMixin, generic.FormView):
         return HttpResponse(form.errors, status=400)
 
 
+@cache_control(max_age=60 * 30)
 def schedule(request):
     curr_datetime = datetime.datetime.now(tz=ZoneInfo("US/Eastern"))
     month_start = datetime.datetime(

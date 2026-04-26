@@ -116,3 +116,15 @@ $board-size: calc(min(100vw - 1rem, 600px));
   // We can't use that css class since chessboard.js will sometimes remove that highlight
   box-shadow: inset 0 0 3px 3px #ff0;
 }
+
+#share-to-discord-icon {
+  font-size: 2rem;
+}
+
+#share-to-discord-icon.bi-x-lg {
+  color: red;
+}
+
+#share-to-discord-icon.bi-check-lg {
+  color: green;
+}

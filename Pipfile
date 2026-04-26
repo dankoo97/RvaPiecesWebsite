@@ -21,6 +21,7 @@ chess = "*"
 berserk = "*"
 crispy-bootstrap5 = "*"
 django-crispy-forms = "*"
+discord-webhook = "*"
 
 [dev-packages]
 ruff = "*"
