@@ -1,0 +1,15 @@
+{% extends "admin/index.html" %}
+{% block content %}
+    <style>
+        .clear-cache {
+            margin-bottom: 1rem;
+        }
+    </style>
+    <div class="clear-cache">
+        <form action="{% url 'clear-cache' %}" method="post">
+            {% csrf_token %}
+            <button type="submit">Clear Site Cache</button>
+        </form>
+    </div>
+    {{ block.super }}
+{% endblock content %}
