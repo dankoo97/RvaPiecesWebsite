@@ -48,7 +48,6 @@
             {% else %}
                 <p>{{ event.short_description }}</p>
             {% endif %}
-            {% if next_event %}<p>Date: {{ next_event.date|date:"l, F j, Y" }} {{ next_event.time|time }}</p>{% endif %}
             {# Tournament link if event is tournament #}
             {% if event.tournament_event_link %}
                 <a href="{{ event.tournament_event_link }}" class="btn btn-primary">Tournament</a>

@@ -78,8 +78,6 @@ class EventView(generic.DetailView):
         if self.object.calendar:
             # Recalculate the calendar
             self.object.calendar.save()
-            next_event = self.object.calendar.next_occurrence
-            context["next_event"] = next_event
             context["event_obj"] = self.object.calendar.events.first()
         if self.object.lichess_studies.count() > 0:
             context["has_lichess_study"] = True
