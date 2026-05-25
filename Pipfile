@@ -4,13 +4,13 @@ verify_ssl = true
 name = "pypi"
 
 [packages]
-django = ">=5.0"
+django = ">=5.0,<6.0"
 django-ckeditor-5 = "*"
 gunicorn = "*"
 psycopg2-binary = "*"
 sqlparse = "*"
 asgiref = "*"
-django-recurring = "*"
+django-recurring = ">=1.3.3"
 django-storages = {extras = ["google"], version = "*"}
 django-cors-headers = "*"
 cloud-sql-python-connector = {extras = ["pg8000"], version = "*"}
@@ -22,6 +22,7 @@ berserk = "*"
 crispy-bootstrap5 = "*"
 django-crispy-forms = "*"
 discord-webhook = "*"
+pre-commit = "*"
 
 [dev-packages]
 ruff = "*"
@@ -30,4 +31,3 @@ pre-commit = "*"
 
 [requires]
 python_version = "3.13"
-python_full_version = "3.13.13"

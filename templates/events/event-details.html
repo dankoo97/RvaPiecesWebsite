@@ -40,6 +40,7 @@
             <p class="location">
                 <a href="https://www.google.com/maps/search/{% querystring api=1 query=event.location %}">{{ event.location }}</a>
             </p>
+            <p class="event-duration">{{ event_obj.start_time|time }} - {{ event_obj.end_time|time }}</p>
             {% if event.long_description|length > 0 %}
                 {% autoescape off %}
                     {{ event.long_description | safe }}

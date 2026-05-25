@@ -80,6 +80,7 @@ class EventView(generic.DetailView):
             self.object.calendar.save()
             next_event = self.object.calendar.next_occurrence
             context["next_event"] = next_event
+            context["event_obj"] = self.object.calendar.events.first()
         if self.object.lichess_studies.count() > 0:
             context["has_lichess_study"] = True
         return context
@@ -153,7 +154,7 @@ class UploadGameView(SingleObjectMixin, generic.FormView):
         return HttpResponse(form.errors, status=400)
 
 
-@cache_control(max_age=60 * 30)
+@cache_control(max_age=60 * 60 * 24)
 def schedule(request):
     curr_datetime = datetime.datetime.now(tz=ZoneInfo("US/Eastern"))
     month_start = datetime.datetime(
