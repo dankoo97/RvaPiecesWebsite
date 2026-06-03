@@ -2,7 +2,6 @@ import datetime
 import calendar
 from collections import defaultdict
 from io import StringIO
-from zoneinfo import ZoneInfo
 
 import chess.pgn
 from berserk.exceptions import ApiError, BerserkError
@@ -10,6 +9,7 @@ from django.contrib import messages
 from django.http import HttpResponseForbidden, HttpResponse
 from django.shortcuts import render, redirect
 from django.urls import reverse
+from django.utils import timezone
 from django.views import generic
 from django.views.decorators.cache import cache_control
 from django.views.generic.detail import SingleObjectMixin
@@ -154,12 +154,13 @@ class UploadGameView(SingleObjectMixin, generic.FormView):
 
 @cache_control(max_age=60 * 60 * 24)
 def schedule(request):
-    curr_datetime = datetime.datetime.now(tz=ZoneInfo("US/Eastern"))
+    current_tz = timezone.get_current_timezone()
+    curr_datetime = timezone.localtime(timezone.now(), current_tz)
     month_start = datetime.datetime(
         year=curr_datetime.year,
         month=curr_datetime.month,
         day=1,
-        tzinfo=ZoneInfo("UTC"),
+        tzinfo=current_tz,
     )
     month = calendar.Calendar()
     month.setfirstweekday(calendar.SUNDAY)
@@ -174,12 +175,15 @@ def schedule(request):
             )
 
             for instance in instances:
-                # TODO: django-recurring timezones are bugged, so this should allow us to use UTC and just treat it as US/Eastern
-                # https://github.com/boosh/django_recurring/issues/4
+                if timezone.is_naive(instance):
+                    instance = timezone.make_aware(instance, current_tz)
+                else:
+                    instance = timezone.localtime(instance, current_tz)
+
                 event_instances[instance.date()].append(
                     {
                         "event": event,
-                        "start_time": instance.time(),
+                        "start_time": instance.timetz(),
                     }
                 )
 
