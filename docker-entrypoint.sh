@@ -3,6 +3,9 @@
 echo "Compiling scss into static files"
 python manage.py sass static/scss static/styles -t compressed
 
+echo "Bundling Javascript files"
+npm run build:js
+
 # Collect static files
 echo "Collect static files"
 python manage.py collectstatic --noinput

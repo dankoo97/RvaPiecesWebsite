@@ -1,19 +1,34 @@
 import datetime
 import os
 import re
-import requests
 from io import StringIO
 
 import berserk
 import chess.pgn
+from discord_webhook.webhook import DiscordWebhook, DiscordEmbed
 
 from django.db import models
 from django.utils.text import slugify
 from django_ckeditor_5.fields import CKEditor5Field
 from recurring.models import CalendarEntry
-from django.core.cache import cache
+from django.utils import timezone
 
+from events.chessnut import Chessnut
 from helpers.models import PrettyJSONEncoder
+
+
+def default_chessnut_handler():
+    return {
+        "enabled": False,
+        "title_regex": "",
+        "days_before_start": 0,
+        "days_after_end": 0,
+        "ignored_event_ids": [],
+    }
+
+
+def default_chessnut_events():
+    return {"events": []}
 
 
 class EventManager(models.Manager):
@@ -27,8 +42,39 @@ class EventManager(models.Manager):
         return self.filter(is_archived=True)
 
 
-CHESSNUT_CLUB_ID = os.environ.get("CHESSNUT_CLUB_ID")
-CACHE_TIMEOUT = 60 * 60 * 24
+class LichessStudyManager(models.Manager):
+    def create_study(self, name, event):
+        pass
+
+    def download_study(self, study_id, event):
+        session = berserk.TokenSession(LichessStudy.api_token())
+        client = berserk.Client(session=session)
+
+        lichess_study_chapters = client.studies.export(study_id=study_id)
+        my_chapters = []
+        name = None
+
+        for chapter in lichess_study_chapters:
+            game = chess.pgn.read_game(StringIO(chapter))
+            my_chapters.append(dict(game.headers))
+
+            name = game.headers["StudyName"]
+
+        default_values = {
+            "Event": lambda: event.name,
+            "Date": lambda: event.tournament_date,
+            "Site": lambda: event.location,
+        }
+
+        study = self.create(
+            name=name,
+            event=event,
+            study_id=study_id,
+            chapters=my_chapters,
+            default_values=default_values,
+        )
+
+        return study
 
 
 # Create your models here.
@@ -55,6 +101,9 @@ class Event(models.Model):
         "self", on_delete=models.SET_NULL, blank=True, null=True, related_name="+"
     )
 
+    discord_channel_id = models.CharField(max_length=100, null=True, blank=True)
+    discord_webhook_urls = models.JSONField(default=dict, null=True, blank=True)
+
     tournament_event_link = models.URLField(blank=True)
     tournament_pairings_link = models.URLField(blank=True)
     tournament_standings_link = models.URLField(blank=True)
@@ -65,7 +114,18 @@ class Event(models.Model):
         CalendarEntry, on_delete=models.CASCADE, blank=True, null=True
     )
 
+    chessnut_events = models.JSONField(
+        default=default_chessnut_events,
+        blank=True,
+        null=True,
+    )
+    chessnut_handler = models.JSONField(
+        default=default_chessnut_handler,
+        blank=True,
+    )
+
     objects = EventManager()
+    chessnut_worker = Chessnut()
 
     def __str__(self):
         if self.is_archived:
@@ -101,12 +161,20 @@ class Event(models.Model):
                 image=self.image,
                 is_promoted=self.is_promoted,
                 is_published=True,
-                published_at=datetime.datetime.now(),
+                published_at=timezone.now(),
                 calendar=self.calendar,
                 tournament_event_link=self.tournament_event_link,
                 tournament_pairings_link=self.tournament_pairings_link,
                 tournament_standings_link=self.tournament_standings_link,
+                discord_channel_id=self.discord_channel_id,
+                discord_webhook_urls=self.discord_webhook_urls,
+                chessnut_events=self.chessnut_events,
+                chessnut_handler=self.chessnut_handler,
             )
+
+            if old_published_version:
+                for study in old_published_version.lichess_studies.values():
+                    study.event = published
 
         except Exception as e:
             # Skip saving the published version if there is an error
@@ -122,7 +190,7 @@ class Event(models.Model):
         self.is_archived = True
         self.is_published = False
         self.is_promoted = False
-        self.archived_at = datetime.datetime.now()
+        self.archived_at = timezone.now()
         self.save()
         return self
 
@@ -137,82 +205,173 @@ class Event(models.Model):
         else:
             self.slug = f"{base_slug}-draft"
 
+        self.chessnut_events = self.chessnut_events or {"events": []}
+        for event in self.chessnut_events.get("events", []):
+            for date_field in ("start_date", "end_date"):
+                if event.get(date_field) is datetime.date:
+                    event[date_field] = event[date_field].isoformat()
+
         super().save(*args, **kwargs)
 
     def get_absolute_url(self):
         return f"/events/event/{self.slug}/"
 
-    @property
-    def chessnut_events(self):
-        if self.tournament_event_link:
-            # Assume the link is either to chessnut or another tournament website
-            return []
+    def sync_magic_chessnut_events(self):
+        config = self.chessnut_handler or {}
+        if not config.get("enabled"):
+            return False
 
-        events = [
-            event
-            for event in self.get_all_chessnut_events()
-            if event["name"].startswith(self.name)
-        ]
+        try:
+            title_pattern = re.compile(config.get("title_regex", ""), re.IGNORECASE)
+            days_before_start = int(config.get("days_before_start", 0))
+            days_after_end = int(config.get("days_after_end", 0))
+        except (TypeError, ValueError, re.error):
+            return False
 
-        ongoing = [
-            e
-            for e in events
-            if e["start_date"] <= datetime.date.today() <= e["end_date"]
-        ]
-        upcoming = sorted(
-            [e for e in events if e["start_date"] > datetime.date.today()],
-            key=lambda e: e["start_date"],
-        )
-        past = sorted(
-            [e for e in events if datetime.date.today() > e["end_date"]],
-            key=lambda e: e["end_date"],
-            reverse=True,
-        )
-
-        return ongoing + upcoming + past
-
-    @staticmethod
-    def get_all_chessnut_events(force_refresh=None) -> list[dict]:
-        cache_key = "chessnut_events"
-        if not force_refresh:
-            cached = cache.get(cache_key)
-            if cached is not None:
-                return cached
-
-        print("Fetching chessnut events...")
-        if not os.environ.get("CHESSNUT_API_KEY"):
-            raise ValueError("CHESSNUT_API_KEY environment variable not set")
-
-        headers = {"Authorization": f"Bearer {os.environ.get('CHESSNUT_API_KEY')}"}
-        params = {
-            "start_date": (
-                datetime.date.today() - datetime.timedelta(days=60)
-            ).isoformat(),
-            "end_date": (
-                datetime.date.today() + datetime.timedelta(days=90)
-            ).isoformat(),
+        today = datetime.date.today()
+        ignored_event_ids = {
+            str(event_id) for event_id in config.get("ignored_event_ids", [])
         }
-        # NOTE: If chessnut ever updates their api such that we can filter events in the request, we should do that here
-        response = requests.get(
-            f"https://chessnut.club/api/v1/club/{CHESSNUT_CLUB_ID}/events/fetch-all",
-            headers=headers,
-            params=params,
+        current_events = self.chessnut_events.get("events", [])
+        manually_added_events = [
+            event
+            for event in current_events
+            if not event.get("magic_added_by_handler")
+            and not event.get("_magic_chessnut")
+        ]
+        generated_events = []
+        manual_event_ids = {str(event.get("id")) for event in manually_added_events}
+
+        for api_event in Chessnut.get_all_chessnut_events():
+            event_id = str(api_event.get("id"))
+            if event_id in ignored_event_ids or event_id in manual_event_ids:
+                continue
+
+            name = str(api_event.get("name", ""))
+            if not title_pattern.search(name):
+                continue
+
+            start_date = api_event.get("start_date")
+            end_date = api_event.get("end_date", start_date)
+            try:
+                start_date = datetime.date.fromisoformat(str(start_date)[:10])
+                end_date = datetime.date.fromisoformat(str(end_date)[:10])
+            except (TypeError, ValueError):
+                continue
+
+            if not (
+                start_date - datetime.timedelta(days=days_before_start)
+                <= today
+                <= end_date + datetime.timedelta(days=days_after_end)
+            ):
+                continue
+
+            event = dict(api_event)
+            event["start_date"] = start_date.isoformat()
+            event["end_date"] = end_date.isoformat()
+            event["expires"] = (
+                end_date + datetime.timedelta(days=days_after_end)
+            ).isoformat()
+            event["magic_added_by_handler"] = True
+            generated_events.append(event)
+
+        generated_events_by_id = {str(event["id"]): event for event in generated_events}
+        updated_events = []
+        for current_event in current_events:
+            event_id = str(current_event.get("id"))
+            if current_event.get("magic_added_by_handler") or current_event.get(
+                "_magic_chessnut"
+            ):
+                if event_id in generated_events_by_id:
+                    updated_events.append(generated_events_by_id.pop(event_id))
+            else:
+                updated_events.append(current_event)
+
+        updated_events.extend(generated_events_by_id.values())
+        if updated_events == current_events:
+            return False
+
+        self.chessnut_events = {"events": updated_events}
+        self.save()
+        return True
+
+    def update_chessnut_json(self, new_json, removed_event_ids=None):
+        current_event_ids = {
+            str(event.get("id")) for event in self.chessnut_events.get("events", [])
+        }
+        updated_event_ids = {
+            str(event.get("id")) for event in new_json.get("events", [])
+        }
+        explicitly_removed_ids = {
+            str(event_id) for event_id in (removed_event_ids or [])
+        }
+        removed_ids = (
+            current_event_ids - updated_event_ids
+            if removed_event_ids is None
+            else explicitly_removed_ids
         )
-        if response.status_code != 200:
-            print(f"Failed to fetch chessnut events: {response.text}")
-            return []
+        handler = self.chessnut_handler or {}
+        ignored_event_ids = handler.setdefault("ignored_event_ids", [])
+        ignored_event_ids.extend(
+            event_id
+            for event_id in removed_ids
+            if event_id not in {str(ignored_id) for ignored_id in ignored_event_ids}
+        )
 
-        def datetime_parser(dct):
-            for k, v in dct.items():
-                if "date" in k and isinstance(v, str):
-                    dct[k] = datetime.date.fromisoformat(v)
-            return dct
+        updated_json = {"events": []}
+        for item in new_json["events"]:
+            if "club" not in item:
+                chessnut_event = Chessnut().get_chessnut_event_by_id(
+                    item["id"]
+                ) or dict(item)
+                for local_field in (
+                    "expires",
+                    "magic_added_by_handler",
+                    "_magic_chessnut",
+                ):
+                    if local_field in item:
+                        chessnut_event[local_field] = item[local_field]
+                updated_json["events"].append(chessnut_event)
+            else:
+                updated_json["events"].append(item)
 
-        result = response.json(object_hook=datetime_parser)["events"]
-        print("Fetched chessnut events")
-        if result is not None:
-            cache.set(cache_key, result, CACHE_TIMEOUT)
-        return result
+        if explicitly_removed_ids:
+            updated_json["events"].extend(
+                event
+                for event in self.chessnut_events.get("events", [])
+                if str(event.get("id")) not in updated_event_ids
+                and str(event.get("id")) not in explicitly_removed_ids
+            )
+
+        self.chessnut_handler = handler
+        self.chessnut_events = updated_json
+        self.save()
+
+    def add_chessnut_event(self, chessnut_event_id):
+        chessnut_event = Chessnut.get_chessnut_event_by_id(chessnut_event_id)
+        self.chessnut_events.append(chessnut_event)
+
+    def delete_chessnut_event(self, chessnut_event_id):
+        self.chessnut_events["events"] = [
+            event
+            for event in self.chessnut_events["events"]
+            if str(event["id"]) != str(chessnut_event_id)
+        ]
+        handler = self.chessnut_handler or {}
+        ignored_event_ids = handler.setdefault("ignored_event_ids", [])
+        if str(chessnut_event_id) not in {
+            str(event_id) for event_id in ignored_event_ids
+        }:
+            ignored_event_ids.append(chessnut_event_id)
+        self.chessnut_handler = handler
+        self.save()
+
+    def refresh_chessnut_event(self, chessnut_event_id):
+        chessnut_event = Chessnut.get_chessnut_event_by_id(chessnut_event_id)
+        self.chessnut_events = [
+            e if e.id != chessnut_event_id else chessnut_event
+            for e in self.chessnut_events
+        ]
 
     class Meta:
         permissions = [
@@ -245,7 +404,30 @@ class LichessStudy(models.Model):
         max_length=100, unique=True, null=False, blank=False, primary_key=True
     )
     chapters = models.JSONField(default=list, encoder=PrettyJSONEncoder)
-    tournament_date = models.DateField()
+    tournament_date = models.DateField(default=datetime.date.today)
+    chessnut_event_id = models.CharField(max_length=100, blank=True, null=True)
+    # default_values = models.JSONField(default=dict, encoder=PrettyJSONEncoder)
+
+    _api_token = None
+
+    @property
+    def study_url(self):
+        return f"https://lichess.org/study/{self.study_id}"
+
+    @classmethod
+    def api_token(cls) -> str:
+        if not cls._api_token:
+            api_token = os.environ.get("LICHESS_API_TOKEN", "")
+            if (
+                len(api_token) >= 2
+                and api_token[0] == api_token[-1]
+                and api_token[0] in "\"'"
+            ):
+                api_token = api_token[1:-1].strip()
+            if not api_token:
+                raise ValueError("LICHESS_API_TOKEN environment variable not set")
+            cls._api_token = api_token
+        return cls._api_token
 
     def save(self, *args, **kwargs):
         if "lichess" in self.study_id:
@@ -260,30 +442,71 @@ class LichessStudy(models.Model):
     def __str__(self):
         return self.name
 
-    @property
-    def study_url(self):
-        return f"https://lichess.org/study/{self.study_id}"
-
-    def add_chapters(self, pgn, chapter_name=None):
+    def add_chapters(self, pgn, orientation=None, chapter_name=None):
         """
         https://lichess.org/api#tag/studies/POST/api/study/{studyId}/import-pgn
         :param pgn: Pgn representation of the chapters
+        :param orientation: POV of white or black
         :param chapter_name: Name of the chapter
         :return: List of chapters created
         """
-        session = berserk.TokenSession(os.environ.get("LICHESS_API_TOKEN"))
+        session = berserk.TokenSession(LichessStudy.api_token())
         client = berserk.Client(session=session)
         created_chapters = client.studies.import_pgn(
-            study_id=self.study_id, pgn=pgn, chapter_name=chapter_name
+            study_id=self.study_id,
+            pgn=pgn,
+            chapter_name=chapter_name,
+            orientation=orientation,
         )
         self.chapters.append(created_chapters)
         return created_chapters
+
+    def share_to_discord(
+        self,
+        game: chess.pgn.Game,
+        lichess_chapter_id: str,
+        white_player_discord=None,
+        black_player_discord=None,
+    ):
+        """
+        :param game: The game to share to discord
+        :param lichess_chapter_id: The chapter id for the game on Lichess.com
+        :param white_player_discord: The discord username of the white player
+        :param black_player_discord: The discord username of the black player
+        """
+
+        webhook = DiscordWebhook(url=self.event.discord_webhook_urls["study"])
+        chapter_url = f"{self.study_url}/{lichess_chapter_id}"
+        dev = {
+            "name": "dan_koontz",
+            "id": "906504873976147979",
+        }
+        webhook.allowed_mentions = {"parse": ["users"]}
+
+        embed = DiscordEmbed(
+            description=f"""
+                Check out this game!
+
+                Questions? Contact the developer: [@{dev["name"]}](https://discord.com/users/{dev["id"]})
+            """,
+        )
+        embed.set_url(url=chapter_url)
+        embed.set_footer(text="This game was submitted via rvapieces.org")
+        embed.set_image(url=f"{chapter_url}.gif")
+        embed.set_timestamp()
+        embed.set_color(0x9246E3)
+
+        if "White" in game.headers and "Black" in game.headers:
+            embed.set_title(f"{game.headers['White']} vs {game.headers['Black']}")
+
+        webhook.add_embed(embed)
+        webhook.execute()
 
     def download_study(self):
         """
         https://lichess.org/api#tag/studies/GET/api/study/{studyId}.pgn
         """
-        session = berserk.TokenSession(os.environ.get("LICHESS_API_TOKEN"))
+        session = berserk.TokenSession(LichessStudy.api_token())
         client = berserk.Client(session=session)
 
         chapters = client.studies.export(study_id=self.study_id)

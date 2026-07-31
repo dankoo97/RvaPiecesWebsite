@@ -1,25 +1,10 @@
+{% load static %}
+{% load crispy_forms_tags %}
 <div class="accordion py-4" id="chessnut-accordion">
-    {% with chessnut_event=event.chessnut_events|first %}
-        <div class="accordion-item">
-            <h2 class="accordion-header">
-                <button class="accordion-button"
-                        type="button"
-                        data-bs-toggle="collapse"
-                        data-bs-target="#chessnut-accordion-collapse-{{ chessnut_event.id }}"
-                        aria-expanded="true"
-                        aria-controls="chessnut-accordion-collapse-{{ chessnut_event.id }}">
-                    {{ chessnut_event.name }}
-                </button>
-            </h2>
-            <div id="chessnut-accordion-collapse-{{ chessnut_event.id }}"
-                 class="accordion-collapse collapse show"
-                 data-bs-parent="#chessnut-accordion">
-                <div class="accordion-body">{% include "events/chessnut/chessnut-event-details.html" %}</div>
-            </div>
-        </div>
-    {% endwith %}
-    {% for chessnut_event in event.chessnut_events|slice:"1:" %}
-        <div class="accordion-item">
+    {% for chessnut_event in event.chessnut_events.events %}
+        <div class="accordion-item"
+             id="chessnut-item-{{ chessnut_event.id }}"
+             data-chessnut-event-id="{{ chessnut_event.id }}">
             <h2 class="accordion-header">
                 <button class="accordion-button collapsed"
                         type="button"
@@ -28,6 +13,9 @@
                         aria-expanded="false"
                         aria-controls="chessnut-accordion-collapse-{{ chessnut_event.id }}">
                     {{ chessnut_event.name }}
+                    {% if request.user.is_superuser and chessnut_event.magic_added_by_handler %}
+                        <span class="badge text-bg-info ms-2">Added by handler</span>
+                    {% endif %}
                 </button>
             </h2>
             <div id="chessnut-accordion-collapse-{{ chessnut_event.id }}"
@@ -37,4 +25,95 @@
             </div>
         </div>
     {% endfor %}
+    {% if request.user.is_superuser %}
+        <div class="accordion-item">
+            <h2 class="accordion-header">
+                <button class="accordion-button collapsed"
+                        type="button"
+                        data-bs-toggle="collapse"
+                        data-bs-target="#chessnut-accordion-collapse-add-item-2"
+                        aria-expanded="false"
+                        aria-controls="chessnut-accordion-collapse-add-item-2">Create Magic Chessnut Handler</button>
+            </h2>
+            <div id="chessnut-accordion-collapse-add-item-2"
+                 class="accordion-collapse collapse"
+                 data-bs-parent="#chessnut-accordion">
+                <div class="accordion-body">
+                    <div class="form-check mb-3">
+                        <input id="magic-handler-enabled"
+                               class="form-check-input"
+                               type="checkbox"
+                               {% if magic_handler_config.enabled %}checked{% endif %}>
+                        <label class="form-check-label" for="magic-handler-enabled">Enable magic handler</label>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label" for="magic-handler-title-regex">
+                            Title regex
+                            <span tabindex="0"
+                                  role="button"
+                                  class="text-muted"
+                                  data-bs-toggle="tooltip"
+                                  data-bs-placement="right"
+                                  title="Matches event titles case-insensitively. Use ^ for the beginning, $ for the end, .*, or | for alternatives. Example: Tuesday Ladder|RVA Open.">
+                                <i class="bi bi-question-circle"></i>
+                            </span>
+                        </label>
+                        <input id="magic-handler-title-regex"
+                               class="form-control"
+                               type="text"
+                               value="{{ magic_handler_config.title_regex }}">
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col">
+                            <label class="form-label" for="magic-handler-days-before">Days before start</label>
+                            <input id="magic-handler-days-before"
+                                   class="form-control"
+                                   type="number"
+                                   min="0"
+                                   value="{{ magic_handler_config.days_before_start }}">
+                        </div>
+                        <div class="col">
+                            <label class="form-label" for="magic-handler-days-after">Days after end</label>
+                            <input id="magic-handler-days-after"
+                                   class="form-control"
+                                   type="number"
+                                   min="0"
+                                   value="{{ magic_handler_config.days_after_end }}">
+                        </div>
+                    </div>
+                    <button type="button"
+                            class="btn btn-primary mt-2"
+                            onclick="save_magic_chessnut_handler('{{ event.slug }}')">Save Magic Handler</button>
+                    <button type="button"
+                            class="btn btn-outline-secondary mt-2 ms-2"
+                            onclick="clear_magic_chessnut_ignored('{{ event.slug }}')">Clear ignored events</button>
+                </div>
+            </div>
+        </div>
+        <div class="accordion-item add-chessnut-event"
+             id="add-chessnut-event-button">
+            <h2 class="accordion-header">
+                <button class="accordion-button collapsed"
+                        type="button"
+                        data-bs-toggle="collapse"
+                        data-bs-target="#chessnut-accordion-collapse-add-item"
+                        aria-expanded="false"
+                        aria-controls="chessnut-accordion-collapse-add-item">Add chessnut event</button>
+            </h2>
+            <div id="chessnut-accordion-collapse-add-item"
+                 class="accordion-collapse collapse"
+                 data-bs-parent="#chessnut-accordion">
+                <div class="accordion-body">{% crispy chessnut_form %}</div>
+            </div>
+        </div>
+    {% endif %}
 </div>
+{% if request.user.is_superuser %}
+    <div class="chessnut-actions">
+        <button id="submit-chessnut-updates"
+                class="btn btn-primary shadow-sm"
+                onclick="submit_chessnut_updates('{{ event.slug }}')"
+                disabled>Submit Chessnut Updates</button>
+    </div>
+{% endif %}
+<script src="{% static 'js/chessnut-api-events.js' %}" type='text/javascript'></script>

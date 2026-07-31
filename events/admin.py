@@ -33,6 +33,14 @@ class EventAdmin(admin.ModelAdmin):
         ("Images", {"fields": ("icon", "image")}),
         ("Editorial", {"fields": ("is_promoted",)}),
         (
+            "Chessnut",
+            {"fields": ("chessnut_events", "chessnut_handler")},
+        ),
+        (
+            "Discord Integration",
+            {"fields": ("discord_channel_id", "discord_webhook_urls")},
+        ),
+        (
             "Tournament",
             {
                 "classes": ("collapse",),

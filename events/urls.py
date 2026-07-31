@@ -12,4 +12,9 @@ urlpatterns = [
         views.UploadGameView.as_view(),
         name="upload_game",
     ),
+    path(
+        "event/<slug:event>/chessnut/",
+        views.ChessnutAPI.as_view(),
+        name="chessnut",
+    ),
 ]

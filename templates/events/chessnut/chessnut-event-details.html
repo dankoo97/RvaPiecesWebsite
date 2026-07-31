@@ -1,15 +1,43 @@
+{% load static %}
 {% load social_media_tags %}
-<a href="{% chessnut_club_link "e" chessnut_event.slug %}"
-   class="btn btn-primary">Tournament Details</a>
-{% if chessnut_event.sections|length > 1 %}
-    <a href="{% chessnut_club_link "e" chessnut_event.slug "participants" %}"
-       class="btn btn-secondary">All Participants</a>
+{% load dict_helper %}
+<div class="chessnut-event-toolbar">
+    <div class="chessnut-event-links">
+        <a href="{% chessnut_club_link "e" chessnut_event.slug %}"
+           class="btn btn-primary">Tournament Details</a>
+        {% if chessnut_event.sections|length > 1 %}
+            <a href="{% chessnut_club_link "e" chessnut_event.slug "participants" %}"
+               class="btn btn-secondary">All Participants</a>
+        {% endif %}
+    </div>
+    <div class="ms-auto">
+        {% if request.user.is_superuser %}
+            <button class="btn btn-danger"
+                    onclick="delete_chessnut_event('{{ chessnut_event.id }}')">Delete</button>
+        {% endif %}
+    </div>
+</div>
+{{ chessnut_event.start_date|iso_date }}
+{% if chessnut_event.start_date != chessnut_event.end_date %}- {{ chessnut_event.end_date|iso_date }}{% endif %}
+{% if request.user.is_superuser and chessnut_event.expires %}
+    <p class="text-muted mb-2">Visible until: {{ chessnut_event.expires|iso_date }}</p>
 {% endif %}
-<br>
-{{ chessnut_event.start_date|date:"l, F j, Y" }}
-{% if chessnut_event.start_date != chessnut_event.end_date %}
-    - {{ chessnut_event.end_date|date:"l, F j, Y" }}
-{% endif %}
+{% with studies=event.lichess_studies.all|get_chessnut_studies:chessnut_event.id %}
+    {% if studies %}
+        <h6 class="chessnut-study-label mt-3 mb-2">Lichess Studies</h6>
+        {% for study in studies %}
+            <div class="chessnut-study-actions mt-2">
+                <a href="{{ study.study_url }}"
+                   class="btn btn-outline-primary chessnut-study-button">{{ study.name }}</a>
+                <a href="{% url 'upload_game' event.slug %}?study_id={{ study.study_id }}"
+                   class="btn btn-success chessnut-study-button chessnut-submit-game-button">
+                    Submit a game to this study!
+                </a>
+            </div>
+        {% endfor %}
+    {% endif %}
+{% endwith %}
+<hr>
 {% with section=chessnut_event.sections|first %}
     {% include "events/chessnut/chessnut-section-details.html" %}
 {% endwith %}

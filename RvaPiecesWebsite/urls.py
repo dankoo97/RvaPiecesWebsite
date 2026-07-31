@@ -17,13 +17,27 @@ Including another URLconf
 
 from django.conf import settings
 from django.conf.urls.static import static
-from django.contrib import admin
+from django.contrib import admin, messages
+from django.core.cache import cache
+from django.core.exceptions import PermissionDenied
 from django.shortcuts import redirect
 from django.urls import path, include
 
 
+def clear_cache_view(request):
+    if not request.user.is_superuser:
+        raise PermissionDenied
+
+    if request.method == "POST":
+        cache.clear()
+        messages.success(request, "Site-wide cache was cleared successfully.")
+
+    return redirect("admin:index")
+
+
 urlpatterns = (
     [
+        path("admin/clear-cache/", clear_cache_view, name="clear-cache"),
         path("admin/", admin.site.urls),
         path("", include("home.urls")),
         path("about/", include("about.urls")),
