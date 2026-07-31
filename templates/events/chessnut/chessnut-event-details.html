@@ -1,3 +1,4 @@
+{% load bootstrap_icons %}
 {% load static %}
 {% load social_media_tags %}
 {% load dict_helper %}
@@ -35,6 +36,57 @@
                 </a>
             </div>
         {% endfor %}
+    {% elif request.user.is_superuser %}
+        <script type="application/javascript">
+            function quick_create_lichess_study(name) {
+                return () => {
+                    {#  Posts to the lichess study form with the chessnut event name and checks if an existing study already matches or a new one needs to be created  #}
+                    const datalist = document.getElementById('study-name-datalist');
+                    let study = null;
+                    datalist.childNodes.forEach((node) => {
+                        const value = node.value;
+                        const study_id = node.dataset.studyId;
+                        if (value === name) {
+                            study = {
+                                name,
+                                study_id,
+                            };
+                        }
+                    });
+
+                    if (study) {
+                        fetch('/events/event/{{ event.slug }}', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                            },
+                            body: URLSearchParams.stringify({
+                                '_study': "quick connect lichess study",
+                                'study_id': study.study_id,
+                                'name': study.name,
+                                'event_id': '{{ chessnut_event.id }}',
+                            }),
+                        })
+                    } else {
+                        fetch('/events/event/{{ event.slug }}', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                            },
+                            body: URLSearchParams.stringify({
+                                '_study': "quick create lichess study",
+                                'name': name,
+                                'event_id': '{{ chessnut_event.id }}',
+                            })
+                        })
+                    }
+                }
+            }
+        </script>
+        <button class="btn btn-primary mt-3 p-2"
+                onclick="quick_create_lichess_study('{{ chessnut_event.name }}')">
+            {% bs_icon 'patch-plus-fill' %} <span>Quick Create Lichess Study</span>
+        </button>
     {% endif %}
 {% endwith %}
 <hr>

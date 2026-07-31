@@ -48,10 +48,13 @@ class EventView(generic.DetailView):
         if "_study" in request.POST:
             study_form = LichessStudyForm(self.object, request.POST)
             if study_form.is_valid():
+                if not study_form.study_id:
+                    study_form.study_id = "test"
+                    # study.study_id = LichessStudy.create_lichess_study(name=study.name)
                 study = study_form.save(commit=False)
                 study.event = self.object
                 study.save()
-                return redirect(self.object.get_absolute_url())
+                return JsonResponse({"success": True})
             context = self.get_context_data()
             context["lichess_form"] = study_form
             return self.render_to_response(context)

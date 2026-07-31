@@ -28,29 +28,75 @@ class LichessStudyForm(forms.ModelForm):
                 (str(chessnut_event["id"]), chessnut_event["name"])
                 for chessnut_event in chessnut_events
             ]
+
+        self.fields["study_id"].required = False
+
+        self.lichess_studies = LichessStudy.get_all_lichess_studies()
+
+        study_datalist_id = "study-name-datalist"
+        options_html = "".join(
+            [
+                f'<option value="{study["name"]}" data-study_id="{study["id"]}">'
+                for study in self.lichess_studies
+            ]
+        )
+        options_js = f"""
+            const datalist = document.getElementById("{study_datalist_id}");
+            const studyMap = new Map();
+            datalist.childNodes.forEach(option => {{
+                studyMap.set(option.value, option.dataset.study_id);
+            }});
+
+            document.getElementById("id_name").addEventListener("input", (e) => {{
+                const value = e.target.value;
+                if (studyMap.has(value)) {{
+                    document.getElementById("id_study_id").value = studyMap.get(value);
+                }} else {{
+                    document.getElementById("id_study_id").value = "";
+                }}
+            }});
+        """
+
         self.helper = FormHelper()
         self.helper.form_id = "lichess-study-form"
         self.helper.form_class = "lichess-study-form"
         self.helper.form_method = "post"
+        self.helper.layout = Layout(
+            Div(
+                Div(
+                    Field("name", placeholder="Search or create a study"),
+                    Field("study_id", type="hidden"),
+                    Field("tournament_date"),
+                    Field("chessnut_event_id"),
+                    HTML(
+                        f"<datalist id='study-name-datalist'>{options_html}</datalist>"
+                    ),
+                    HTML(
+                        f'<script type="application/javascript">{options_js}</script>'
+                    ),
+                    css_class="col-12 col-md-6",
+                ),
+            )
+        )
 
         self.helper.add_input(Submit("_study", "Add Study"))
 
     class Meta:
         model = LichessStudy
-        fields = ["study_id", "tournament_date", "chessnut_event_id"]
+        fields = ["study_id", "name", "tournament_date", "chessnut_event_id"]
 
         help_texts = {
-            "study_id": "The study ID or study URL.",
-            "tournament_date": "The date of the tournament.",
+            "name": "Lichess study",
+            "tournament_date": "The date of the tournament",
         }
         labels = {
-            "study_id": "Study ID",
+            "name": "Lichess Study",
             "chessnut_event_id": "Chessnut Event",
         }
 
         widgets = {
-            "study_id": forms.TextInput(
-                attrs={"placeholder": "https://lichess.org/study/abcdefgh"}
+            "name": forms.TextInput(
+                attrs={"list": "study-name-datalist", "autocomplete": "off"}
             ),
             "tournament_date": forms.DateInput(attrs={"type": "date"}),
         }

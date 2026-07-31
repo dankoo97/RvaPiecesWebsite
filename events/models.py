@@ -409,6 +409,15 @@ class LichessStudy(models.Model):
     # default_values = models.JSONField(default=dict, encoder=PrettyJSONEncoder)
 
     _api_token = None
+    _default_study_options = {
+        "visibility": "unlisted",
+        "computer": "everyone",
+        "explorer": "everyone",
+        "cloneable": "everyone",
+        "shareable": "everyone",
+        "chat": "everyone",
+        "sticky": False,
+    }
 
     @property
     def study_url(self):
@@ -433,9 +442,6 @@ class LichessStudy(models.Model):
         if "lichess" in self.study_id:
             p = re.compile(r"study/(?P<study_id>[a-zA-Z0-9]+)")
             self.study_id = p.search(self.study_id).group("study_id")
-
-        if len(self.chapters) == 0:
-            self.download_study()
 
         super().save(*args, **kwargs)
 
@@ -520,3 +526,24 @@ class LichessStudy(models.Model):
                 self.name = game.headers["StudyName"]
 
         return self.chapters
+
+    @classmethod
+    def get_all_lichess_studies(cls):
+        session = berserk.TokenSession(LichessStudy.api_token())
+        client = berserk.Client(session=session)
+        return client.studies.get_by_user(username="rvapieces")
+
+    @classmethod
+    def create_lichess_study(cls, *, name, study_options=None):
+        """
+        Creates a new study on Lichess.com with the given name and options for the api_token owner
+
+        :param name: The name of the study
+        :param study_options: The study options based off of https://lichess.org/api#tag/studies/POST/api/study
+        :return: Returns the study id
+        """
+        study_options = study_options or LichessStudy._default_study_options
+        session = berserk.TokenSession(LichessStudy.api_token())
+        client = berserk.Client(session=session)
+        study_id = client.studies.create(name=name, **study_options)
+        return study_id
