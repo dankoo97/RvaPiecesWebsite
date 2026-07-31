@@ -13,3 +13,101 @@
     color: inherit;
   }
 }
+
+.add-chessnut-event {
+  // Use a plus sign instead of Bootstrap's default chevron.
+  --bs-accordion-btn-icon: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%23212529' stroke-linecap='round' stroke-opacity='.75' stroke-width='1.5' d='M8 2v12M2 8h12'/%3e%3c/svg%3e");
+  --bs-accordion-btn-active-icon: var(--bs-accordion-btn-icon);
+  --bs-accordion-btn-icon-transform: rotate(45deg);
+}
+
+.chessnut-event-toolbar {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.chessnut-event-links {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+#button-id-chessnut {
+  background-color: #800080;
+  border-color: #800080;
+  color: #fff;
+  font-weight: 600;
+}
+
+#button-id-chessnut:hover,
+#button-id-chessnut:focus {
+  background-color: #650065;
+  border-color: #650065;
+  color: #fff;
+}
+
+.add-chessnut-event #button-id-chessnut {
+  width: 100%;
+  margin-top: 0.5rem;
+  border-radius: 0.5rem;
+  box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.15);
+}
+
+.chessnut-actions {
+  display: flex;
+  justify-content: flex-end;
+  margin: 0 0 1.5rem;
+}
+
+#submit-chessnut-updates {
+  min-width: 12rem;
+  border-radius: 0.5rem;
+  transition: opacity 0.2s ease, transform 0.2s ease;
+}
+
+#submit-chessnut-updates:not(:disabled):hover {
+  transform: translateY(-1px);
+}
+
+#submit-chessnut-updates:disabled {
+  opacity: 0.55;
+}
+
+.chessnut-study-actions {
+  display: flex;
+  flex-direction: row;
+  gap: 0.5rem;
+  width: 28rem;
+  max-width: 100%;
+  margin-top: 0.75rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+.chessnut-study-label {
+  color: #800080;
+  font-weight: 600;
+}
+
+.chessnut-study-button {
+  flex: 1;
+  text-align: left;
+}
+
+.chessnut-submit-game-button {
+  flex: 1.35;
+  font-weight: 600;
+}
+
+@media (max-width: 480px) {
+  .chessnut-study-actions {
+    width: 100%;
+  }
+
+  .chessnut-study-button {
+    font-size: 0.875rem;
+  }
+}

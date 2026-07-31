@@ -52,7 +52,6 @@ function updateStatus (updateBoard = true) {
     previousMoveButton.disabled = getPly() === 0;
 
     setCurrentPositionCls();
-
     // Update hidden pgn value
     $pgn.val(game.pgn());
 }
@@ -88,7 +87,18 @@ function createCommonHeaders () {
     let event_location = $board.data('event-location');
     updateHeader('Event', event_name);
     updateHeader('Site', event_location);
-    updateHeader('Date', Date.now());
+    const easternDateParts = new Intl.DateTimeFormat('en-US', {
+        timeZone: 'America/New_York',
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+    }).formatToParts(new Date(Date.now()));
+    const easternDate = Object.fromEntries(
+        easternDateParts
+            .filter(part => ['year', 'month', 'day'].includes(part.type))
+            .map(part => [part.type, part.value])
+    );
+    updateHeader('Date', `${easternDate.year}.${easternDate.month}.${easternDate.day}`);
 }
 
 function updateHeader (key, value) {
@@ -196,6 +206,19 @@ document.addEventListener("DOMContentLoaded", () => {
         if (event.key === "Enter") {
             event.preventDefault();
         }
+    });
+
+    form.addEventListener("submit", (event) => {
+        const moveCount = game.history().length;
+
+        if (moveCount < 10) {
+            const confirmed = confirm(`This game has less than 10 moves. Are you sure you want to submit?`);
+
+            if (!confirmed) {
+                event.preventDefault();
+            }
+        }
+
     });
 });
 

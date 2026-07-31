@@ -1,6 +1,7 @@
 {% extends "template.html" %}
 {% load static bootstrap_icons %}
 {% block content %}
+    {% csrf_token %}
     {% if not event.is_published %}
         <script type="text/javascript">
             document.addEventListener("DOMContentLoaded", function () {
@@ -58,19 +59,9 @@
             {% if event.tournament_standings_link %}
                 <a href="{{ event.tournament_standings_link }}" class="btn btn-primary">Standings</a>
             {% endif %}
-            {% if request.user.is_staff or request.user.is_superuser %}
-                <a href="?force_refresh=true">Force cache refresh</a>
-            {% endif %}
-            {% if has_lichess_study %}
-                <p>
-                    Want to share your game from this event? <a href="{% url "upload_game" event.slug %}">Add to our lichess study!</a>
-                </p>
-            {% endif %}
         </div>
     </div>
-    {% if event.chessnut_events|length > 0 %}
-        {% include "events/chessnut/chessnut-events.html" %}
-    {% endif %}
+    {% include "events/chessnut/chessnut-events.html" %}
     {% if request.user.is_staff or request.user.is_superuser %}
         {% include "events/admin-actions.html" %}
     {% endif %}

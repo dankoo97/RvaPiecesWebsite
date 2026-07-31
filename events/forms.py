@@ -4,6 +4,7 @@ from crispy_forms.bootstrap import FormActions, Modal, StrictButton
 from django import forms
 from django.templatetags.static import static
 
+from events.chessnut import Chessnut
 from events.models import LichessStudy
 
 from crispy_forms.helper import FormHelper
@@ -11,8 +12,22 @@ from crispy_forms.layout import Submit, Layout, HTML, Div, Button, Field, MultiF
 
 
 class LichessStudyForm(forms.ModelForm):
-    def __init__(self, *args, **kwargs):
+    chessnut_event_id = forms.ChoiceField(
+        label="Chessnut Event",
+        choices=(),
+        widget=forms.Select(attrs={"class": "form-select"}),
+    )
+
+    def __init__(self, event=None, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        if event is not None:
+            chessnut_events = (event.chessnut_events or {}).get("events", [])
+            self.fields["chessnut_event_id"].choices = [
+                ("", "Select a Chessnut event")
+            ] + [
+                (str(chessnut_event["id"]), chessnut_event["name"])
+                for chessnut_event in chessnut_events
+            ]
         self.helper = FormHelper()
         self.helper.form_id = "lichess-study-form"
         self.helper.form_class = "lichess-study-form"
@@ -22,13 +37,16 @@ class LichessStudyForm(forms.ModelForm):
 
     class Meta:
         model = LichessStudy
-        fields = ["study_id", "tournament_date"]
+        fields = ["study_id", "tournament_date", "chessnut_event_id"]
 
         help_texts = {
             "study_id": "The study ID or study URL.",
             "tournament_date": "The date of the tournament.",
         }
-        labels = {"study_id": "Study ID"}
+        labels = {
+            "study_id": "Study ID",
+            "chessnut_event_id": "Chessnut Event",
+        }
 
         widgets = {
             "study_id": forms.TextInput(
@@ -42,6 +60,7 @@ class LichessStudyGameSubmissionForm(forms.Form):
     study = forms.ModelChoiceField(
         queryset=LichessStudy.objects.all(), label="Lichess Study", empty_label=None
     )
+    chessnut_event_id = forms.CharField(widget=forms.HiddenInput, required=False)
     pgn = forms.CharField(widget=forms.HiddenInput, required=True, label="PGN Preview")
 
     # Board settings
@@ -131,11 +150,9 @@ class LichessStudyGameSubmissionForm(forms.Form):
 
     _lifespan = 90
 
-    def __init__(self, event, *args, **kwargs):
+    def __init__(self, event, chessnut_event_id=None, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.fields[
-            "study"
-        ].queryset = LichessStudyGameSubmissionForm.get_relevant_studies(event)
+        self.fields["study"].queryset = event.lichess_studies.all()
 
         self.helper = FormHelper()
         self.helper.form_id = "lichess-study-game-submission-form"
@@ -317,6 +334,7 @@ class LichessStudyGameSubmissionForm(forms.Form):
 
         self.helper.layout = Layout(
             Field("pgn"),
+            Field("chessnut_event_id"),
             Field("share_to_discord"),
             Field("study"),
             Div(
@@ -331,6 +349,7 @@ class LichessStudyGameSubmissionForm(forms.Form):
             header_wrapper,
             share_to_discord_accordion,
             pgn_buttons_wrapper,
+            # Hidden
             board_settings_modal,
             context_menu,
         )
@@ -358,3 +377,33 @@ class LichessStudyGameSubmissionForm(forms.Form):
             tournament_date__lte=datetime.datetime.today(),
         )
         return studies
+
+
+class ChessnutForm(forms.Form):
+    chessnut_event = forms.ChoiceField()
+    expires = forms.DateField(
+        widget=forms.DateInput(attrs={"type": "date"}), required=False
+    )
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.helper = FormHelper()
+        self.helper.form_id = "chessnut-event-form"
+        self.helper.form_class = "chessnut-event-form"
+        self.helper.form_method = "post"
+
+        self.fields["chessnut_event"].choices = self.get_chessnut_events()
+
+        self.helper.layout = Layout(
+            Div(
+                Field("chessnut_event"),
+                Field("expires"),
+            )
+        )
+
+        self.helper.add_input(Button("_chessnut", "Connect Chessnut Event"))
+
+    @staticmethod
+    def get_chessnut_events():
+        result = Chessnut().get_all_chessnut_events()
+        return [(e["id"], e["name"]) for e in result]

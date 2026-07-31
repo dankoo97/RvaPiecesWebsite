@@ -1,12 +1,16 @@
 import datetime
 import calendar
+import json
+import re
 from collections import defaultdict
 from io import StringIO
+from typing import Any
+from urllib.parse import quote
 
 import chess.pgn
 from berserk.exceptions import ApiError, BerserkError
 from django.contrib import messages
-from django.http import HttpResponseForbidden, HttpResponse
+from django.http import HttpResponseForbidden, HttpResponse, JsonResponse
 from django.shortcuts import render, redirect
 from django.urls import reverse
 from django.utils import timezone
@@ -14,7 +18,8 @@ from django.views import generic
 from django.views.decorators.cache import cache_control
 from django.views.generic.detail import SingleObjectMixin
 
-from events.forms import LichessStudyForm, LichessStudyGameSubmissionForm
+from events.chessnut import Chessnut
+from events.forms import LichessStudyForm, LichessStudyGameSubmissionForm, ChessnutForm
 from events.models import Event, Announcement, LichessStudy
 
 
@@ -41,52 +46,77 @@ class EventView(generic.DetailView):
             self.object.archive()
             return redirect("schedule")
         if "_study" in request.POST:
-            study_id = request.POST["study_id"]
-            tournament_date = request.POST["tournament_date"]
-            collision = LichessStudy.objects.filter(study_id=study_id)
-            if not collision.exists():
-                LichessStudy.objects.create(
-                    event=self.object,
-                    study_id=study_id,
-                    tournament_date=tournament_date,
-                )
-            elif collision.exists() and collision[0].event is None:
-                collision[0].event = self.object
-            elif collision.exists() and collision[0].event != self.object:
-                messages.error(
-                    request,
-                    f"Study already exists for another event: {collision[0].event.name}",
-                )
-            elif collision.exists() and collision[0].event == self.object:
-                messages.error(request, "This study already exists for this event.")
-            return redirect(self.object.get_absolute_url())
+            study_form = LichessStudyForm(self.object, request.POST)
+            if study_form.is_valid():
+                study = study_form.save(commit=False)
+                study.event = self.object
+                study.save()
+                return redirect(self.object.get_absolute_url())
+            context = self.get_context_data()
+            context["lichess_form"] = study_form
+            return self.render_to_response(context)
+        if "_chessnut" in request.POST:
+            chessnut_event_id = request.POST["chessnut_event"]
+            expires = request.POST["expires"]
+            chessnut_event = Chessnut().get_chessnut_event_by_id(chessnut_event_id)
+            chessnut_event["expires"] = expires
+            self.object.chessnut_events["events"].append(chessnut_event)
+            self.object.save()
 
-        return None
+        return redirect(self.object.get_absolute_url())
 
     def get(self, request, *args, **kwargs):
-        if request.GET.get("force_refresh", "false").lower() == "true":
-            Event.get_all_chessnut_events(force_refresh=True)
-            return redirect(request.path)
         return super().get(request, *args, **kwargs)
 
     def get_context_data(self, **kwargs):
         context = {
             "event": self.object,
-            "lichess_form": LichessStudyForm,
+            "lichess_form": LichessStudyForm(self.object),
+            "chessnut_form": ChessnutForm,
             **kwargs,
         }
         if self.object.calendar:
             # Recalculate the calendar
             self.object.calendar.save()
             context["event_obj"] = self.object.calendar.events.first()
-        if self.object.lichess_studies.count() > 0:
-            context["has_lichess_study"] = True
+
+        today = datetime.date.today()
+        active_events = []
+        removed_expired_event = False
+        for chessnut_event in self.object.chessnut_events["events"]:
+            expires = chessnut_event.get("expires")
+            if expires:
+                expiry = datetime.date.fromisoformat(str(expires)[:10])
+                if expiry < today:
+                    removed_expired_event = True
+                    continue
+            active_events.append(chessnut_event)
+
+        if removed_expired_event:
+            self.object.chessnut_events["events"] = active_events
+            self.object.save()
+
+        self.object.sync_magic_chessnut_events()
+        context["magic_handler_config"] = self.object.chessnut_handler
+
         return context
 
     def get_queryset(self):
         if self.request.user.is_staff or self.request.user.is_superuser:
             return Event.objects.all()
         return Event.objects.public()
+
+    def render_to_response(
+        self, context: dict[str, Any], **response_kwargs: Any
+    ) -> HttpResponse:
+        response = super().render_to_response(context, **response_kwargs)
+        response.set_cookie(
+            "chessnut_json",
+            quote(json.dumps(self.object.chessnut_events), safe=""),
+            httponly=False,
+            samesite="Lax",
+        )
+        return response
 
 
 class UploadGameView(SingleObjectMixin, generic.FormView):
@@ -100,7 +130,19 @@ class UploadGameView(SingleObjectMixin, generic.FormView):
         return super().get(request, *args, **kwargs)
 
     def get_form(self, form_class=...):
-        return LichessStudyGameSubmissionForm(self.get_object())
+        chessnut_event_id = self.request.GET.get("chessnut_event_id")
+        form = LichessStudyGameSubmissionForm(
+            self.get_object(),
+            chessnut_event_id=chessnut_event_id,
+        )
+        form.initial["chessnut_event_id"] = chessnut_event_id
+        study_id = self.request.GET.get("study_id")
+        if (
+            study_id
+            and form.fields["study"].queryset.filter(study_id=study_id).exists()
+        ):
+            form.initial["study"] = study_id
+        return form
 
     def get_context_data(self, **kwargs):
         success = self.request.GET.get("success", "not_found").lower()
@@ -114,7 +156,11 @@ class UploadGameView(SingleObjectMixin, generic.FormView):
 
     def post(self, request, *args, **kwargs):
         self.object = self.get_object()
-        form = LichessStudyGameSubmissionForm(self.object, request.POST)
+        form = LichessStudyGameSubmissionForm(
+            self.object,
+            chessnut_event_id=request.POST.get("chessnut_event_id"),
+            data=request.POST,
+        )
         if form.is_valid():
             pgn_text = form.cleaned_data["pgn"]
             share_to_discord = form.cleaned_data["share_to_discord"]
@@ -150,6 +196,53 @@ class UploadGameView(SingleObjectMixin, generic.FormView):
                 )
                 return redirect(reverse("event", kwargs={"slug": study.event.slug}))
         return HttpResponse(form.errors, status=400)
+
+
+class ChessnutAPI(generic.View):
+    slug_field = "event"
+    slug_url_kwarg = "event"
+
+    def post(self, request, *args, **kwargs):
+        if not (request.user.is_staff or request.user.is_superuser):
+            return HttpResponseForbidden()
+        if "_update" in request.POST:
+            print(request.POST)
+            event = Event.objects.get(slug=kwargs["event"])
+            removed_ids = json.loads(request.POST.get("removedIds", "[]"))
+            event.update_chessnut_json(
+                json.loads(request.POST["newJson"]),
+                removed_event_ids=removed_ids,
+            )
+            return JsonResponse({"success": True})
+        if "_magic_update" in request.POST:
+            event = Event.objects.get(slug=kwargs["event"])
+            handler = event.chessnut_handler or {}
+            try:
+                handler.update(
+                    {
+                        "enabled": request.POST.get("enabled") == "true",
+                        "title_regex": request.POST["title_regex"],
+                        "days_before_start": int(request.POST["days_before_start"]),
+                        "days_after_end": int(request.POST["days_after_end"]),
+                    }
+                )
+                re.compile(handler["title_regex"])
+            except (KeyError, TypeError, ValueError, re.error) as error:
+                return JsonResponse({"error": str(error)}, status=400)
+
+            event.chessnut_handler = handler
+            event.save()
+            event.sync_magic_chessnut_events()
+            return JsonResponse({"success": True})
+        if "_magic_clear_ignored" in request.POST:
+            event = Event.objects.get(slug=kwargs["event"])
+            handler = event.chessnut_handler or {}
+            handler["ignored_event_ids"] = []
+            event.chessnut_handler = handler
+            event.save()
+            event.sync_magic_chessnut_events()
+            return JsonResponse({"success": True})
+        return HttpResponse(status=400)
 
 
 @cache_control(max_age=60 * 60 * 24)
