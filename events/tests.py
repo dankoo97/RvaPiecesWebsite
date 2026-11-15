@@ -398,3 +398,20 @@ class MagicChessnutHandlerTests(TestCase):
             "events.chessnut.requests.get", side_effect=requests.ConnectionError()
         ):
             self.assertEqual(Chessnut.get_all_chessnut_events(), [])
+
+    def test_refresh_bypasses_cached_event_list(self):
+        cache.set(
+            Chessnut._cache_key, [{"id": 1, "name": "Old", "start_date": "2000-01-01"}]
+        )
+        with patch("events.chessnut.requests.get") as get:
+            get.return_value = self.api_response([self.api_event])
+            self.assertTrue(self.event.sync_magic_chessnut_events(refresh=True))
+        self.assertEqual(self.magic_event_ids(), [101])
+        self.assertEqual(cache.get(Chessnut._cache_key)[0]["id"], 101)
+
+    def test_without_refresh_uses_cached_event_list(self):
+        cache.set(Chessnut._cache_key, [self.api_event])
+        with patch("events.chessnut.requests.get") as get:
+            self.event.sync_magic_chessnut_events()
+            get.assert_not_called()
+        self.assertEqual(self.magic_event_ids(), [101])

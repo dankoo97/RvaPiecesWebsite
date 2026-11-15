@@ -60,7 +60,7 @@ class Chessnut:
 
     @staticmethod
     def get_all_chessnut_events(
-        *, start_date=None, end_date=None, fail_silently=True
+        *, start_date=None, end_date=None, fail_silently=True, refresh=False
     ) -> list[dict]:
         """
         Fetch every event for the club.
@@ -68,6 +68,7 @@ class Chessnut:
         :param fail_silently: When True (the default), API failures return an empty list.
             When False, they raise ChessnutAPIError so callers can tell "the API is down"
             apart from "the club has no events".
+        :param refresh: Skip the cached list and fetch from the API (the result is still cached).
         """
 
         def fail(message):
@@ -75,7 +76,7 @@ class Chessnut:
                 return []
             raise ChessnutAPIError(message)
 
-        cached = cache.get(Chessnut._cache_key)
+        cached = None if refresh else cache.get(Chessnut._cache_key)
         if cached:
             return cached
         logger.info("Fetching chessnut events...")

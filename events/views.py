@@ -242,7 +242,7 @@ class ChessnutAPI(generic.View):
 
             event.chessnut_handler = handler
             event.save()
-            event.sync_magic_chessnut_events()
+            event.sync_magic_chessnut_events(refresh=True)
             return JsonResponse({"success": True})
         if "_magic_clear_ignored" in request.POST:
             event = Event.objects.get(slug=kwargs["event"])
@@ -250,7 +250,7 @@ class ChessnutAPI(generic.View):
             handler["ignored_event_ids"] = []
             event.chessnut_handler = handler
             event.save()
-            event.sync_magic_chessnut_events()
+            event.sync_magic_chessnut_events(refresh=True)
             return JsonResponse({"success": True})
         return HttpResponse(status=400)
 

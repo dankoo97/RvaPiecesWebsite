@@ -218,7 +218,12 @@ class Event(models.Model):
     def get_absolute_url(self):
         return f"/events/event/{self.slug}/"
 
-    def sync_magic_chessnut_events(self):
+    def sync_magic_chessnut_events(self, refresh=False):
+        """
+        Add/remove handler-managed Chessnut events based on chessnut_handler.
+
+        :param refresh: Fetch a fresh event list from Chessnut instead of using the cached one.
+        """
         config = self.chessnut_handler or {}
         if not config.get("enabled"):
             return False
@@ -245,7 +250,9 @@ class Event(models.Model):
         manual_event_ids = {str(event.get("id")) for event in manually_added_events}
 
         try:
-            api_events = Chessnut.get_all_chessnut_events(fail_silently=False)
+            api_events = Chessnut.get_all_chessnut_events(
+                fail_silently=False, refresh=refresh
+            )
         except (ChessnutAPIError, ValueError):
             # Without a good response from Chessnut we can't tell which events still match,
             # so leave the current list alone instead of wiping every auto-added event.
