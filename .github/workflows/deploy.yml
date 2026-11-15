@@ -1,0 +1,116 @@
+# Deploys the site to Cloud Run.
+#
+#   push to main            -> "prod" revision tag, receives 100% of traffic (rvapieces.org)
+#   push to dev             -> "dev" revision tag, 0% traffic, own URL
+#   manual run on any other branch (Actions tab or `gh workflow run deploy.yml --ref <branch>`)
+#                           -> replaces whatever is on "dev" with that branch, for testing
+#
+# Every dev deploy first copies the production SQLite database to a separate dev path, so
+# the dev site starts with real data and never writes to the production database.
+# Dev can read from Lichess/Chessnut/Discord but not create anything there (EXTERNAL_WRITES_ENABLED).
+
+name: Deploy to Cloud Run
+
+on:
+  push:
+    branches: [main, dev]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  id-token: write # for Workload Identity Federation
+
+env:
+  PROJECT_ID: rva-pieces-website
+  REGION: us-east4
+  SERVICE: rva-pieces-website
+  IMAGE: us-central1-docker.pkg.dev/rva-pieces-website/rva-pieces-website-docker-repo/rva-pieces-website
+  DB_BUCKET: rva-pieces-website_db
+  PROD_DB_PATH: db.sqlite3
+  DEV_DB_PATH: dev/db.sqlite3
+  DEV_STATIC_LOCATION: dev-static
+  URL_SUFFIXES: "697368313332.us-east4.run.app 7er2of6acq-uk.a.run.app"
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    # One deploy per target at a time; queued deploys wait instead of cancelling a running one.
+    concurrency:
+      group: deploy-${{ (github.ref_name == 'main') && 'prod' || 'dev' }}
+      cancel-in-progress: false
+    steps:
+      - name: Pick target
+        id: target
+        run: |
+          if [ "$GITHUB_REF_NAME" = "main" ]; then echo "name=prod" >> "$GITHUB_OUTPUT"
+          else echo "name=dev" >> "$GITHUB_OUTPUT"; fi
+
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Bundle JavaScript
+        run: npm ci && npm run build:js
+
+      - uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: ${{ vars.GCP_WIF_PROVIDER }}
+          service_account: ${{ vars.GCP_DEPLOY_SA }}
+
+      - uses: google-github-actions/setup-gcloud@v2
+
+      - name: Build and push image
+        env:
+          TARGET: ${{ steps.target.outputs.name }}
+        run: |
+          gcloud auth configure-docker "${IMAGE%%/*}" --quiet
+          docker build -t "$IMAGE:$GITHUB_SHA" -t "$IMAGE:$TARGET" .
+          docker push --all-tags "$IMAGE"
+
+      - name: Build allowed origins
+        id: origins
+        run: |
+          origins="http://127.0.0.1:8080,https://rvapieces.org"
+          for h in $URL_SUFFIXES; do
+            for prefix in "" "prod---" "dev---" "latest---"; do
+              origins="$origins,https://${prefix}${SERVICE}-${h}"
+            done
+          done
+          echo "value=$origins" >> "$GITHUB_OUTPUT"
+
+      - name: Copy production database to dev
+        if: steps.target.outputs.name == 'dev'
+        run: gcloud storage cp "gs://$DB_BUCKET/$PROD_DB_PATH" "gs://$DB_BUCKET/$DEV_DB_PATH"
+
+      # New revisions inherit env vars from the latest revision, which may be a dev one, so
+      # every deploy sets the database/static settings explicitly.
+      - name: Deploy dev revision
+        if: steps.target.outputs.name == 'dev'
+        env:
+          ORIGINS: ${{ steps.origins.outputs.value }}
+        run: |
+          gcloud run deploy "$SERVICE" --project "$PROJECT_ID" --region "$REGION" \
+            --image "$IMAGE:$GITHUB_SHA" --no-traffic --tag dev \
+            --update-env-vars "^|^REMOTE_DB_PATH=$DEV_DB_PATH|GS_STATIC_LOCATION=$DEV_STATIC_LOCATION|GS_FILE_OVERWRITE=False|EXTERNAL_WRITES_ENABLED=False|CSRF_TRUSTED_ORIGINS=$ORIGINS|CORS_ALLOWED_ORIGINS=$ORIGINS"
+
+      - name: Deploy prod revision
+        if: steps.target.outputs.name == 'prod'
+        env:
+          ORIGINS: ${{ steps.origins.outputs.value }}
+        run: |
+          gcloud run deploy "$SERVICE" --project "$PROJECT_ID" --region "$REGION" \
+            --image "$IMAGE:$GITHUB_SHA" --no-traffic --tag prod \
+            --update-env-vars "^|^REMOTE_DB_PATH=$PROD_DB_PATH|CSRF_TRUSTED_ORIGINS=$ORIGINS|CORS_ALLOWED_ORIGINS=$ORIGINS" \
+            --remove-env-vars GS_STATIC_LOCATION,GS_FILE_OVERWRITE,EXTERNAL_WRITES_ENABLED
+          gcloud run services update-traffic "$SERVICE" --project "$PROJECT_ID" --region "$REGION" \
+            --to-tags prod=100
+
+      - name: Summary
+        env:
+          TARGET: ${{ steps.target.outputs.name }}
+        run: |
+          url="https://${TARGET}---${SERVICE}-${URL_SUFFIXES##* }"
+          echo "Deployed \`$GITHUB_REF_NAME\` ($GITHUB_SHA) to **$TARGET**: $url" >> "$GITHUB_STEP_SUMMARY"

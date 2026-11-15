@@ -22,6 +22,7 @@ from django.views.generic.detail import SingleObjectMixin
 from events.chessnut import Chessnut
 from events.forms import LichessStudyForm, LichessStudyGameSubmissionForm, ChessnutForm
 from events.models import Event, Announcement, LichessStudy
+from helpers.external_writes import ExternalWritesDisabled
 
 logger = logging.getLogger(__name__)
 
@@ -188,6 +189,9 @@ class UploadGameView(SingleObjectMixin, generic.FormView):
             # TODO: Setup email server to send confirmation message?
             try:
                 chapters = study.add_chapters(str(game), orientation=orientation)
+            except ExternalWritesDisabled as e:
+                messages.warning(request, str(e))
+                return redirect(reverse("event", kwargs={"slug": study.event.slug}))
             except ApiError as e:
                 messages.error(request, f"Error adding chapter: {e}")
             except BerserkError as e:

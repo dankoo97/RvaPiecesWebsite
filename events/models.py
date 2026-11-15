@@ -15,6 +15,7 @@ from recurring.models import CalendarEntry
 from django.utils import timezone
 
 from events.chessnut import Chessnut, ChessnutAPIError
+from helpers.external_writes import require_external_writes
 from helpers.models import PrettyJSONEncoder
 
 
@@ -477,6 +478,7 @@ class LichessStudy(models.Model):
         :param chapter_name: Name of the chapter
         :return: List of chapters created
         """
+        require_external_writes("Adding games to Lichess studies")
         session = berserk.TokenSession(LichessStudy.api_token())
         client = berserk.Client(session=session)
         created_chapters = client.studies.import_pgn(
@@ -501,6 +503,7 @@ class LichessStudy(models.Model):
         :param white_player_discord: The discord username of the white player
         :param black_player_discord: The discord username of the black player
         """
+        require_external_writes("Sharing to Discord")
 
         webhook = DiscordWebhook(url=self.event.discord_webhook_urls["study"])
         chapter_url = f"{self.study_url}/{lichess_chapter_id}"
@@ -563,6 +566,7 @@ class LichessStudy(models.Model):
         :param study_options: The study options based off of https://lichess.org/api#tag/studies/POST/api/study
         :return: Returns the study id
         """
+        require_external_writes("Creating Lichess studies")
         study_options = study_options or LichessStudy._default_study_options
         session = berserk.TokenSession(LichessStudy.api_token())
         client = berserk.Client(session=session)
