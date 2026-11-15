@@ -7,6 +7,7 @@
 #
 # Every dev deploy first copies the production SQLite database to a separate dev path, so
 # the dev site starts with real data and never writes to the production database.
+# Dev can read from Lichess/Chessnut/Discord but not create anything there (EXTERNAL_WRITES_ENABLED).
 
 name: Deploy to Cloud Run
 
@@ -93,7 +94,7 @@ jobs:
         run: |
           gcloud run deploy "$SERVICE" --project "$PROJECT_ID" --region "$REGION" \
             --image "$IMAGE:$GITHUB_SHA" --no-traffic --tag dev \
-            --update-env-vars "^|^REMOTE_DB_PATH=$DEV_DB_PATH|GS_STATIC_LOCATION=$DEV_STATIC_LOCATION|GS_FILE_OVERWRITE=False|CSRF_TRUSTED_ORIGINS=$ORIGINS|CORS_ALLOWED_ORIGINS=$ORIGINS"
+            --update-env-vars "^|^REMOTE_DB_PATH=$DEV_DB_PATH|GS_STATIC_LOCATION=$DEV_STATIC_LOCATION|GS_FILE_OVERWRITE=False|EXTERNAL_WRITES_ENABLED=False|CSRF_TRUSTED_ORIGINS=$ORIGINS|CORS_ALLOWED_ORIGINS=$ORIGINS"
 
       - name: Deploy prod revision
         if: steps.target.outputs.name == 'prod'
@@ -103,7 +104,7 @@ jobs:
           gcloud run deploy "$SERVICE" --project "$PROJECT_ID" --region "$REGION" \
             --image "$IMAGE:$GITHUB_SHA" --no-traffic --tag prod \
             --update-env-vars "^|^REMOTE_DB_PATH=$PROD_DB_PATH|CSRF_TRUSTED_ORIGINS=$ORIGINS|CORS_ALLOWED_ORIGINS=$ORIGINS" \
-            --remove-env-vars GS_STATIC_LOCATION,GS_FILE_OVERWRITE
+            --remove-env-vars GS_STATIC_LOCATION,GS_FILE_OVERWRITE,EXTERNAL_WRITES_ENABLED
           gcloud run services update-traffic "$SERVICE" --project "$PROJECT_ID" --region "$REGION" \
             --to-tags prod=100
 

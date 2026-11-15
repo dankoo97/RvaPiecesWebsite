@@ -23,3 +23,6 @@ static/js/*.bundle*.js
 static/js/*.bundle*.js.map
 node_modules/
 staticfiles/
+
+# Too large for git; served from the media bucket (gs://rva-pieces-website_media/images/)
+static/images/404blunder.gif

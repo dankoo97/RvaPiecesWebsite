@@ -62,8 +62,13 @@ Deploys are automatic (`.github/workflows/deploy.yml`), all to the `rva-pieces-w
   `gh workflow run deploy.yml --ref <your-branch>` (or Actions → Deploy to Cloud Run → Run workflow,
   pick your branch). The next push to `dev` puts `dev` back.
 - The dev site shares the media bucket with production. It stores its static files under
-  `dev-static/` and never overwrites existing media files, but **it does use the real
-  Discord webhooks and Lichess/Chessnut credentials**, so be careful with actions that post to them.
+  `dev-static/` and never overwrites existing media files.
+- The dev site reads from the live Lichess/Chessnut/Discord services but can't create anything
+  on them (`EXTERNAL_WRITES_ENABLED=False`): submitting a game or sharing to Discord shows a
+  warning instead. Guard any new outside-service write with
+  `helpers.external_writes.require_external_writes(...)`.
+- `static/images/404blunder.gif` is too large for git. It's served from
+  `gs://rva-pieces-website_media/images/404blunder.gif`.
 
 One-time setup of the GitHub → Google Cloud connection: `scripts/setup-github-deploy.sh`.
 
