@@ -26,6 +26,10 @@ from helpers.external_writes import ExternalWritesDisabled
 
 logger = logging.getLogger(__name__)
 
+# Chessnut event accordions open automatically while the event is running
+# and for this many days before it starts.
+CHESSNUT_AUTO_OPEN_DAYS = 7
+
 
 # Create your views here.
 class ListEventsView(generic.ListView):
@@ -109,8 +113,26 @@ class EventView(generic.DetailView):
 
         self.object.sync_magic_chessnut_events()
         context["magic_handler_config"] = self.object.chessnut_handler
+        context["open_chessnut_event_ids"] = self.chessnut_event_ids_to_open(today)
 
         return context
+
+    def chessnut_event_ids_to_open(self, today):
+        """IDs of Chessnut events that are running now or start within CHESSNUT_AUTO_OPEN_DAYS."""
+        open_ids = []
+        for chessnut_event in self.object.chessnut_events.get("events", []):
+            start_date = chessnut_event.get("start_date")
+            # One-day Chessnut events can have "end_date": null
+            end_date = chessnut_event.get("end_date") or start_date
+            try:
+                start_date = datetime.date.fromisoformat(str(start_date)[:10])
+                end_date = datetime.date.fromisoformat(str(end_date)[:10])
+            except (TypeError, ValueError):
+                continue
+            opens_on = start_date - datetime.timedelta(days=CHESSNUT_AUTO_OPEN_DAYS)
+            if opens_on <= today <= end_date:
+                open_ids.append(chessnut_event.get("id"))
+        return open_ids
 
     def get_queryset(self):
         if self.request.user.is_staff or self.request.user.is_superuser:
