@@ -16,6 +16,16 @@ DB_BUCKET=rva-pieces-website_db
 POOL=github
 PROVIDER=github
 
+# A newly created service account takes a little while to show up for IAM bindings.
+retry() {
+  for attempt in 1 2 3 4 5 6; do
+    "$@" && return 0
+    echo "  ...retrying in 10s (attempt $attempt)"
+    sleep 10
+  done
+  return 1
+}
+
 PROJECT_NUMBER=$(gcloud projects describe "$PROJECT_ID" --format='value(projectNumber)')
 DEPLOY_SA=${DEPLOY_SA_NAME}@${PROJECT_ID}.iam.gserviceaccount.com
 
@@ -29,17 +39,17 @@ gcloud iam service-accounts describe "$DEPLOY_SA" --project "$PROJECT_ID" >/dev/
 
 echo "== Granting deploy permissions"
 # Deploy revisions and move traffic
-gcloud projects add-iam-policy-binding "$PROJECT_ID" --condition=None --quiet \
+retry gcloud projects add-iam-policy-binding "$PROJECT_ID" --condition=None --quiet \
   --member "serviceAccount:$DEPLOY_SA" --role roles/run.admin >/dev/null
 # Push images
-gcloud artifacts repositories add-iam-policy-binding "$AR_REPO" --project "$PROJECT_ID" \
+retry gcloud artifacts repositories add-iam-policy-binding "$AR_REPO" --project "$PROJECT_ID" \
   --location "$AR_LOCATION" --member "serviceAccount:$DEPLOY_SA" \
   --role roles/artifactregistry.writer >/dev/null
 # Copy the prod database to the dev path
-gcloud storage buckets add-iam-policy-binding "gs://$DB_BUCKET" \
+retry gcloud storage buckets add-iam-policy-binding "gs://$DB_BUCKET" \
   --member "serviceAccount:$DEPLOY_SA" --role roles/storage.objectUser >/dev/null
 # Deploy revisions that run as the site's runtime service account
-gcloud iam service-accounts add-iam-policy-binding "$RUNTIME_SA" --project "$PROJECT_ID" \
+retry gcloud iam service-accounts add-iam-policy-binding "$RUNTIME_SA" --project "$PROJECT_ID" \
   --member "serviceAccount:$DEPLOY_SA" --role roles/iam.serviceAccountUser >/dev/null
 
 echo "== Workload identity pool + GitHub provider"
@@ -56,7 +66,7 @@ gcloud iam workload-identity-pools providers describe "$PROVIDER" --project "$PR
     --attribute-condition "assertion.repository == '$REPO'"
 
 echo "== Allowing $REPO workflows to act as the deploy service account"
-gcloud iam service-accounts add-iam-policy-binding "$DEPLOY_SA" --project "$PROJECT_ID" \
+retry gcloud iam service-accounts add-iam-policy-binding "$DEPLOY_SA" --project "$PROJECT_ID" \
   --role roles/iam.workloadIdentityUser \
   --member "principalSet://iam.googleapis.com/projects/$PROJECT_NUMBER/locations/global/workloadIdentityPools/$POOL/attribute.repository/$REPO" >/dev/null
 
