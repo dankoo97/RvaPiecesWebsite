@@ -2,15 +2,15 @@
 
 ### Required Tools
 ```aiignore
-Docker
-Docker Compose
+uv (https://docs.astral.sh/uv/getting-started/installation/)
 Npm
-Python 3.13
-Django
-Pipenv
+Docker and Docker Compose (optional, only for running in containers)
 A modern IDE (Intellij, VSCode, etc.) w/ any relevant plugins
 A modern browser
 ```
+
+uv installs Python 3.13 and all the Python packages (Django included) for you, so you don't
+need to install them yourself.
 
 Check out the live website at rvapieces.org
 
@@ -18,31 +18,45 @@ Check out the live website at rvapieces.org
 1. In the root directory create a .env file
     ```aiignore
     # Example .env file
-    DJANGO_SETTINGS_MODULE="RvaPiecesWebsite.settings"
-    DJANGO_SECRET_KEY="{your secret key}"
+    DJANGO_SETTINGS_MODULE=RvaPiecesWebsite.settings
+    DJANGO_SECRET_KEY={your secret key}
     DEBUG=True
     DJANGO_LOGLEVEL=info
-    DJANGO_ALLOWED_HOSTS="localhost, 127.0.0.1"
-    LICHESS_API_KEY={your lichess api key}
+    DJANGO_ALLOWED_HOSTS=localhost,127.0.0.1
+    LICHESS_API_TOKEN={your lichess api token}
     CHESSNUT_API_KEY={your chessnut api key}
-    CHESSNUT_CLUB_ID=945  // Rvapieces club id
-    CACHE_MIDDLEWARE_SECONDS=0  // disables caching
+    # Rvapieces club id
+    CHESSNUT_CLUB_ID=945
+    # Disables page caching
+    CACHE_MIDDLEWARE_SECONDS=0
     ```
 2. Generate a secret key for django (https://djecrety.ir/)
-3. Create a lock file with `pipenv install`
-4. Install npm packages with `npm install`
-5. Start up the python environment with `pipenv shell`
-6. Create the database migrations with `python manage.py makemigrations`
-7. Apply the database migrations with `python manage.py migrate`
-8. Run the server with `python manage.py runserver`
-9. Visit http://localhost:8000 (It should open automatically)
+3. Install the Python packages with `uv sync --group dev`. This creates `.venv` from `uv.lock`,
+   including the dev tools (ruff, djlint, pre-commit)
+4. Install the git hooks with `uv run pre-commit install`
+5. Install npm packages with `npm install`
+6. Apply the database migrations with `uv run --env-file .env python manage.py migrate`
+7. Run the server with `uv run --env-file .env python manage.py runserver`
+8. Visit http://localhost:8000
+
+Nothing in the code reads `.env` by itself, so pass `--env-file .env` to `uv run` (or set
+`UV_ENV_FILE=.env` in your shell once and leave the flag off). `uv run` uses the project's
+`.venv` without having to activate it. You can also activate it yourself
+(`.venv\Scripts\activate` on Windows, `source .venv/bin/activate` elsewhere) if you'd rather
+run `python manage.py ...` directly.
+
+To add or upgrade a package, use `uv add <package>` (or `uv add --group dev <package>`) and
+commit the updated `pyproject.toml` and `uv.lock`. Don't edit `uv.lock` by hand.
+
+To run the tests: \
+```uv run --env-file .env python manage.py test```
 
 To apply css: \
 Open a terminal and run \
-```python manage.py sass static/scss static/styles --watch```
+```uv run --env-file .env python manage.py sass static/scss static/styles --watch```
 
 To apply js: \
-Install npm, open a terminal and run \
+Open a terminal and run \
 ```npm run watch:js```
 
 ### Branches and deployments

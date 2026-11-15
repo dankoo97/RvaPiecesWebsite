@@ -6,11 +6,11 @@
              id="chessnut-item-{{ chessnut_event.id }}"
              data-chessnut-event-id="{{ chessnut_event.id }}">
             <h2 class="accordion-header">
-                <button class="accordion-button collapsed"
+                <button class="accordion-button{% if chessnut_event.id not in open_chessnut_event_ids %} collapsed{% endif %}"
                         type="button"
                         data-bs-toggle="collapse"
                         data-bs-target="#chessnut-accordion-collapse-{{ chessnut_event.id }}"
-                        aria-expanded="false"
+                        aria-expanded="{% if chessnut_event.id in open_chessnut_event_ids %}true{% else %}false{% endif %}"
                         aria-controls="chessnut-accordion-collapse-{{ chessnut_event.id }}">
                     {{ chessnut_event.name }}
                     {% if request.user.is_superuser and chessnut_event.magic_added_by_handler %}
@@ -19,7 +19,7 @@
                 </button>
             </h2>
             <div id="chessnut-accordion-collapse-{{ chessnut_event.id }}"
-                 class="accordion-collapse collapse"
+                 class="accordion-collapse collapse{% if chessnut_event.id in open_chessnut_event_ids %} show{% endif %}"
                  data-bs-parent="#chessnut-accordion">
                 <div class="accordion-body">{% include "events/chessnut/chessnut-event-details.html" %}</div>
             </div>

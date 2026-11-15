@@ -26,6 +26,10 @@ from helpers.external_writes import ExternalWritesDisabled
 
 logger = logging.getLogger(__name__)
 
+# Chessnut event accordions open automatically while the event is running
+# and for this many days before it starts.
+CHESSNUT_AUTO_OPEN_DAYS = 7
+
 
 # Create your views here.
 class ListEventsView(generic.ListView):
@@ -56,13 +60,38 @@ class EventView(generic.DetailView):
         if "_study" in request.POST:
             study_form = LichessStudyForm(self.object, request.POST)
             if study_form.is_valid():
-                if not study_form.study_id:
-                    study_form.study_id = "test"
-                    # study.study_id = LichessStudy.create_lichess_study(name=study.name)
                 study = study_form.save(commit=False)
-                study.event = self.object
-                study.save()
-                return JsonResponse({"success": True})
+                created_on_lichess = False
+                if not study.study_id:
+                    # The name didn't match an existing study, so make a new one on Lichess
+                    try:
+                        study.study_id = LichessStudy.create_lichess_study(
+                            name=study.name
+                        )
+                    except ExternalWritesDisabled as e:
+                        study_form.add_error(None, str(e))
+                    except (BerserkError, ValueError) as e:
+                        logger.exception(
+                            "Failed to create Lichess study %r", study.name
+                        )
+                        study_form.add_error(
+                            None, f"Couldn't create the study on Lichess: {e}"
+                        )
+                    else:
+                        if study.study_id:
+                            created_on_lichess = True
+                        else:
+                            study_form.add_error(
+                                None, "Lichess didn't return an id for the new study."
+                            )
+                if not study_form.errors:
+                    study.event = self.object
+                    study.save()
+                    verb = "Created" if created_on_lichess else "Added"
+                    messages.success(
+                        request, f"{verb} Lichess study {study.name}: {study.study_url}"
+                    )
+                    return redirect(self.object.get_absolute_url())
             context = self.get_context_data()
             context["lichess_form"] = study_form
             return self.render_to_response(context)
@@ -109,8 +138,26 @@ class EventView(generic.DetailView):
 
         self.object.sync_magic_chessnut_events()
         context["magic_handler_config"] = self.object.chessnut_handler
+        context["open_chessnut_event_ids"] = self.chessnut_event_ids_to_open(today)
 
         return context
+
+    def chessnut_event_ids_to_open(self, today):
+        """IDs of Chessnut events that are running now or start within CHESSNUT_AUTO_OPEN_DAYS."""
+        open_ids = []
+        for chessnut_event in self.object.chessnut_events.get("events", []):
+            start_date = chessnut_event.get("start_date")
+            # One-day Chessnut events can have "end_date": null
+            end_date = chessnut_event.get("end_date") or start_date
+            try:
+                start_date = datetime.date.fromisoformat(str(start_date)[:10])
+                end_date = datetime.date.fromisoformat(str(end_date)[:10])
+            except (TypeError, ValueError):
+                continue
+            opens_on = start_date - datetime.timedelta(days=CHESSNUT_AUTO_OPEN_DAYS)
+            if opens_on <= today <= end_date:
+                open_ids.append(chessnut_event.get("id"))
+        return open_ids
 
     def get_queryset(self):
         if self.request.user.is_staff or self.request.user.is_superuser:

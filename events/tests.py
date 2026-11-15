@@ -425,3 +425,56 @@ class MagicChessnutHandlerTests(TestCase):
         self.assertEqual(added["end_date"], one_day["start_date"])
         expected_expiry = datetime.date.today() + datetime.timedelta(days=7)
         self.assertEqual(added["expires"], expected_expiry.isoformat())
+
+
+@patch.object(LichessStudy, "get_all_lichess_studies", return_value=[])
+class LichessStudyQuickCreateTests(TestCase):
+    def setUp(self):
+        self.event = Event.objects.create(**test_events["test1"]).publish()
+        staff = User.objects.create_user("staff", password="pw", is_staff=True)
+        self.client.force_login(staff)
+
+    def post_study(self, **data):
+        return self.client.post(
+            self.event.get_absolute_url(),
+            {"_study": "Add Study", "tournament_date": "2026-11-15", **data},
+        )
+
+    def test_new_name_creates_study_on_lichess(self, _studies):
+        with patch.object(
+            LichessStudy, "create_lichess_study", side_effect=["new111", "new222"]
+        ) as create:
+            first = self.post_study(name="November Open", study_id="")
+            second = self.post_study(name="December Open", study_id="")
+
+        self.assertRedirects(first, self.event.get_absolute_url())
+        self.assertRedirects(second, self.event.get_absolute_url())
+        create.assert_any_call(name="November Open")
+        create.assert_any_call(name="December Open")
+        self.assertEqual(
+            sorted(self.event.lichess_studies.values_list("study_id", "name")),
+            [("new111", "November Open"), ("new222", "December Open")],
+        )
+
+    def test_existing_study_is_linked_without_creating(self, _studies):
+        with patch.object(LichessStudy, "create_lichess_study") as create:
+            response = self.post_study(name="Old Study", study_id="abc123")
+        self.assertRedirects(response, self.event.get_absolute_url())
+        create.assert_not_called()
+        self.assertTrue(self.event.lichess_studies.filter(study_id="abc123").exists())
+
+    @override_settings(EXTERNAL_WRITES_ENABLED=False)
+    def test_external_writes_disabled_shows_error_and_saves_nothing(self, _studies):
+        response = self.post_study(name="November Open", study_id="")
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "turned off on this test site")
+        self.assertFalse(LichessStudy.objects.exists())
+
+    def test_lichess_error_shows_error_and_saves_nothing(self, _studies):
+        with patch.object(
+            LichessStudy, "create_lichess_study", side_effect=ValueError("no token")
+        ):
+            response = self.post_study(name="November Open", study_id="")
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "no token")
+        self.assertFalse(LichessStudy.objects.exists())

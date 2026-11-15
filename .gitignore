@@ -7,7 +7,6 @@ static/styles/
 /*.iml
 
 **/.env
-/Pipfile.lock
 
 # Credentials and local data
 service-account-key.json
