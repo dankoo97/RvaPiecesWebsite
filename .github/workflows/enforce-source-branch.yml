@@ -1,0 +1,24 @@
+name: Enforce PR source branch
+
+on:
+  pull_request:
+    branches: [main]
+    types: [opened, reopened, synchronize, edited, labeled, unlabeled]
+
+jobs:
+  source-branch:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check head branch is dev or hotfix/*
+        env:
+          HEAD_REF: ${{ github.head_ref }}
+          OVERRIDE: ${{ contains(github.event.pull_request.labels.*.name, 'allow-any-source') }}
+        run: |
+          if [ "$HEAD_REF" = "dev" ] || [[ "$HEAD_REF" == hotfix/* ]]; then
+            echo "Source branch '$HEAD_REF' is allowed."
+          elif [ "$OVERRIDE" = "true" ]; then
+            echo "::warning::Source branch '$HEAD_REF' allowed via 'allow-any-source' label."
+          else
+            echo "::error::PRs into main must come from 'dev' or 'hotfix/*' (got '$HEAD_REF'). Add the 'allow-any-source' label to override."
+            exit 1
+          fi
