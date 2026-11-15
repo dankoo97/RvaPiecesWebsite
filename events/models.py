@@ -1,4 +1,5 @@
 import datetime
+import logging
 import os
 import re
 from io import StringIO
@@ -13,8 +14,11 @@ from django_ckeditor_5.fields import CKEditor5Field
 from recurring.models import CalendarEntry
 from django.utils import timezone
 
-from events.chessnut import Chessnut
+from events.chessnut import Chessnut, ChessnutAPIError
 from helpers.models import PrettyJSONEncoder
+
+
+logger = logging.getLogger(__name__)
 
 
 def default_chessnut_handler():
@@ -240,7 +244,18 @@ class Event(models.Model):
         generated_events = []
         manual_event_ids = {str(event.get("id")) for event in manually_added_events}
 
-        for api_event in Chessnut.get_all_chessnut_events():
+        try:
+            api_events = Chessnut.get_all_chessnut_events(fail_silently=False)
+        except (ChessnutAPIError, ValueError):
+            # Without a good response from Chessnut we can't tell which events still match,
+            # so leave the current list alone instead of wiping every auto-added event.
+            logger.warning(
+                "Skipping magic Chessnut sync for event %s: Chessnut API unavailable",
+                self.pk,
+            )
+            return False
+
+        for api_event in api_events:
             event_id = str(api_event.get("id"))
             if event_id in ignored_event_ids or event_id in manual_event_ids:
                 continue

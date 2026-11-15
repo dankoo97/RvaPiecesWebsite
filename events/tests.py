@@ -1,12 +1,16 @@
 import datetime
-from unittest.mock import patch
+from unittest.mock import Mock, patch
+
+import requests
 
 from django.contrib.admin import AdminSite
 from django.contrib.auth.models import User
 from django.http import HttpRequest
-from django.test import TestCase
+from django.core.cache import cache
+from django.test import TestCase, override_settings
 
 from .admin import EventAdmin
+from .chessnut import Chessnut
 from .models import Event, LichessStudy
 
 
@@ -299,3 +303,98 @@ class EventAdminTests(TestCase):
         self.assertEqual(
             Event.objects.archived().count(), 1, "Archived event not created from admin"
         )
+
+
+LOCMEM_CACHE = {"default": {"BACKEND": "django.core.cache.backends.locmem.LocMemCache"}}
+
+
+@override_settings(CACHES=LOCMEM_CACHE)
+@patch.dict("os.environ", {"CHESSNUT_API_KEY": "test-key"})
+class MagicChessnutHandlerTests(TestCase):
+    def setUp(self):
+        cache.clear()
+        Chessnut._api_key = None
+        today = datetime.date.today()
+        self.api_event = {
+            "id": 101,
+            "name": "RVA Pieces Tournament Practice - This Month",
+            "start_date": (today - datetime.timedelta(days=3)).isoformat(),
+            "end_date": (today + datetime.timedelta(days=3)).isoformat(),
+        }
+        self.event = Event.objects.create(
+            name="Magic Test",
+            chessnut_handler={
+                "enabled": True,
+                "title_regex": "Tournament Practice",
+                "days_before_start": 14,
+                "days_after_end": 7,
+                "ignored_event_ids": [],
+            },
+        )
+
+    def tearDown(self):
+        cache.clear()
+        Chessnut._api_key = None
+
+    @staticmethod
+    def api_response(events, status=200):
+        response = Mock(status_code=status, headers={}, text="", url="", request=None)
+        response.json.side_effect = lambda **kwargs: {"events": events}
+        return response
+
+    def sync_with(self, response=None, error=None):
+        cache.clear()
+        with patch("events.chessnut.requests.get") as get:
+            if error:
+                get.side_effect = error
+            else:
+                get.return_value = response
+            return self.event.sync_magic_chessnut_events()
+
+    def magic_event_ids(self):
+        self.event.refresh_from_db()
+        return [e["id"] for e in self.event.chessnut_events["events"]]
+
+    def test_matching_event_is_added(self):
+        self.assertTrue(self.sync_with(self.api_response([self.api_event])))
+        self.assertEqual(self.magic_event_ids(), [101])
+
+    def test_request_failure_keeps_magic_events(self):
+        self.sync_with(self.api_response([self.api_event]))
+        self.assertFalse(self.sync_with(error=requests.ConnectionError()))
+        self.assertEqual(self.magic_event_ids(), [101])
+
+    def test_error_status_keeps_magic_events(self):
+        self.sync_with(self.api_response([self.api_event]))
+        self.assertFalse(self.sync_with(self.api_response([], status=500)))
+        self.assertEqual(self.magic_event_ids(), [101])
+
+    def test_empty_response_keeps_magic_events_and_is_not_cached(self):
+        self.sync_with(self.api_response([self.api_event]))
+        self.assertFalse(self.sync_with(self.api_response([])))
+        self.assertEqual(self.magic_event_ids(), [101])
+        self.assertIsNone(cache.get(Chessnut._cache_key))
+
+    def test_missing_api_key_keeps_magic_events(self):
+        self.sync_with(self.api_response([self.api_event]))
+        Chessnut._api_key = None
+        with patch.dict("os.environ", {"CHESSNUT_API_KEY": ""}):
+            self.assertFalse(self.event.sync_magic_chessnut_events())
+        self.assertEqual(self.magic_event_ids(), [101])
+
+    def test_event_outside_window_is_removed_on_good_response(self):
+        self.sync_with(self.api_response([self.api_event]))
+        long_ago = datetime.date.today() - datetime.timedelta(days=60)
+        finished = {
+            **self.api_event,
+            "start_date": long_ago.isoformat(),
+            "end_date": long_ago.isoformat(),
+        }
+        self.assertTrue(self.sync_with(self.api_response([finished])))
+        self.assertEqual(self.magic_event_ids(), [])
+
+    def test_form_choices_still_fail_silently(self):
+        with patch(
+            "events.chessnut.requests.get", side_effect=requests.ConnectionError()
+        ):
+            self.assertEqual(Chessnut.get_all_chessnut_events(), [])

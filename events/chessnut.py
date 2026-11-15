@@ -36,6 +36,10 @@ def datetime_parser(dct):
     return dct
 
 
+class ChessnutAPIError(Exception):
+    """Raised when the Chessnut API can't be reached or returns an unusable response."""
+
+
 class Chessnut:
     _cache_key = "chessnut_events"
     _api_key = None
@@ -55,9 +59,25 @@ class Chessnut:
         return cls._api_key
 
     @staticmethod
-    def get_all_chessnut_events(*, start_date=None, end_date=None) -> list[dict]:
-        if cache.get(Chessnut._cache_key) is not None:
-            return cache.get(Chessnut._cache_key)
+    def get_all_chessnut_events(
+        *, start_date=None, end_date=None, fail_silently=True
+    ) -> list[dict]:
+        """
+        Fetch every event for the club.
+
+        :param fail_silently: When True (the default), API failures return an empty list.
+            When False, they raise ChessnutAPIError so callers can tell "the API is down"
+            apart from "the club has no events".
+        """
+
+        def fail(message):
+            if fail_silently:
+                return []
+            raise ChessnutAPIError(message)
+
+        cached = cache.get(Chessnut._cache_key)
+        if cached:
+            return cached
         logger.info("Fetching chessnut events...")
 
         headers = {"Authorization": f"Bearer {Chessnut.api_key()}"}
@@ -77,19 +97,25 @@ class Chessnut:
             )
         except requests.RequestException:
             logger.exception("Chessnut API request failed: endpoint=%s", endpoint)
-            return []
+            return fail("Chessnut API request failed")
         if response.status_code != 200:
             log_unexpected_response(response, "fetch-all")
-            return []
+            return fail(f"Chessnut API returned status {response.status_code}")
 
         try:
             result = response.json(object_hook=datetime_parser)["events"]
         except (ValueError, KeyError, TypeError):
             log_unexpected_response(response, "fetch-all")
-            return []
+            return fail("Chessnut API returned an unexpected response")
+        if not result:
+            # The club always has events, so an empty list means something went wrong upstream.
+            # Don't cache it, or every page would see "no events" for a whole day.
+            logger.warning("Chessnut API returned no events: endpoint=%s", endpoint)
+            return fail("Chessnut API returned no events")
+
         cache.set(Chessnut._cache_key, result, CACHE_TIMEOUT)
         logger.info("Fetched chessnut events")
-        return result or []
+        return result
 
     @staticmethod
     def get_chessnut_event_by_id(chessnut_event_id: int):
