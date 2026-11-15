@@ -45,18 +45,27 @@ To apply js: \
 Install npm, open a terminal and run \
 ```npm run watch:js```
 
-To push changes to the live website:
-1. Make sure the docker engine is running
-2. Run `docker build -t {the name of the image} .`
-3. Run `docker push {the name of the image}`
-4. Go to the Google Cloud console and open the `rva-pieces-website` service
-5. Click "Edit & deploy new revision"
-6. Select the latest image url (it ***does not*** automatically select the latest revision)
-7. Update any environment variables
-8. Make sure that it is not automatically switching traffic to the new revision
-9. Deploy
-10. Set a revision tag for your change and test your changes there
-11. If everything is working, switch traffic to the new revision
+### Branches and deployments
+Deploys are automatic (`.github/workflows/deploy.yml`), all to the `rva-pieces-website` Cloud Run service:
+
+| Branch | Cloud Run tag | URL | Database |
+|---|---|---|---|
+| `main` | `prod` (100% traffic) | https://rvapieces.org | `gs://rva-pieces-website_db/db.sqlite3` |
+| `dev` | `dev` (0% traffic) | https://dev---rva-pieces-website-7er2of6acq-uk.a.run.app | `gs://rva-pieces-website_db/dev/db.sqlite3` |
+
+- `main` is always what's live. It only accepts PRs, normally from `dev` or `hotfix/*`.
+- Work on a feature branch off `dev`, then open a PR into `dev`. Merging deploys it to the dev site.
+- **Every dev deploy copies the production database to the dev database first**, so dev has
+  real data, and changes made on the dev site never touch production. Anything saved on the dev
+  site is wiped on the next dev deploy.
+- To test a feature branch on the dev site before merging, take over `dev` with
+  `gh workflow run deploy.yml --ref <your-branch>` (or Actions → Deploy to Cloud Run → Run workflow,
+  pick your branch). The next push to `dev` puts `dev` back.
+- The dev site shares the media bucket with production. It stores its static files under
+  `dev-static/` and never overwrites existing media files, but **it does use the real
+  Discord webhooks and Lichess/Chessnut credentials**, so be careful with actions that post to them.
+
+One-time setup of the GitHub → Google Cloud connection: `scripts/setup-github-deploy.sh`.
 
 To use the live website's images locally:
 1. Add `READ_FROM_CLOUD=True` to your `.env` file

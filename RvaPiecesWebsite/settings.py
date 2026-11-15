@@ -152,6 +152,16 @@ AUTH_PASSWORD_VALIDATORS = [
 ]
 
 GS_BUCKET_NAME = os.environ.get("GS_BUCKET_NAME")
+# Prefix for collected static files inside the bucket. The dev deployment sets this so its
+# collectstatic run doesn't overwrite the static files production is serving.
+GS_STATIC_LOCATION = os.environ.get("GS_STATIC_LOCATION", "").strip("/")
+# The dev deployment shares the media bucket with production; it disables overwriting so
+# an upload there can never replace an existing production file with the same name.
+GS_FILE_OVERWRITE = os.environ.get("GS_FILE_OVERWRITE", "True").lower() in (
+    "1",
+    "true",
+    "yes",
+)
 if GS_BUCKET_NAME:
     source_credentials, _ = google.auth.default()
     target_credentials = impersonated_credentials.Credentials(
@@ -168,6 +178,7 @@ if GS_BUCKET_NAME:
         },
         "staticfiles": {
             "BACKEND": "storages.backends.gcloud.GoogleCloudStorage",
+            "OPTIONS": {"location": GS_STATIC_LOCATION},
         },
     }
 
@@ -212,6 +223,7 @@ MEDIA_URL = (
 
 STATIC_URL = (
     f"https://storage.googleapis.com/{GS_BUCKET_NAME}/"
+    + (f"{GS_STATIC_LOCATION}/" if GS_STATIC_LOCATION else "")
     if GS_BUCKET_NAME
     else "/static/"
 )
