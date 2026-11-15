@@ -6,7 +6,9 @@ from django.db.models.signals import post_save, post_delete
 from django.dispatch import receiver
 from google.cloud import storage
 
-BUCKET = os.environ.get("GS_BUCKET_NAME")
+# The database should live in a private bucket, separate from the public media bucket.
+# Falls back to GS_BUCKET_NAME for backwards compatibility.
+BUCKET = os.environ.get("DB_BUCKET_NAME") or os.environ.get("GS_BUCKET_NAME")
 REMOTE_PATH = os.environ.get("REMOTE_DB_PATH")
 LOCAL_PATH = os.environ.get("LOCAL_DB_PATH")
 USE_REMOTE_DB = os.environ.get("USE_REMOTE_DB", "False")

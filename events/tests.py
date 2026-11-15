@@ -7,7 +7,7 @@ from django.http import HttpRequest
 from django.test import TestCase
 
 from .admin import EventAdmin
-from .models import Event
+from .models import Event, LichessStudy
 
 
 test_events = {
@@ -154,6 +154,39 @@ class EventTests(TestCase):
         self.assertEqual(
             resolve.status_code, 404, "Resolved archived event for anon user"
         )
+
+
+class PublishTests(TestCase):
+    def setUp(self):
+        self.draft = Event.objects.create(**test_events["test1"])
+        self.live = self.draft.publish()
+        self.draft.refresh_from_db()
+
+    def test_republish_archives_old_version(self):
+        new_live = self.draft.publish()
+        self.live.refresh_from_db()
+        self.assertTrue(self.live.is_archived)
+        self.assertTrue(new_live.is_published)
+        self.assertEqual(self.draft.published_version, new_live)
+
+    def test_failed_publish_keeps_live_version(self):
+        with patch.object(Event.objects, "create", side_effect=RuntimeError("boom")):
+            with self.assertRaisesMessage(RuntimeError, "boom"):
+                self.draft.publish()
+
+        self.live.refresh_from_db()
+        self.draft.refresh_from_db()
+        self.assertTrue(self.live.is_published)
+        self.assertFalse(self.live.is_archived)
+        self.assertEqual(self.draft.published_version, self.live)
+
+    def test_republish_moves_lichess_studies(self):
+        study = LichessStudy.objects.create(
+            study_id="abc123", name="Study", event=self.live
+        )
+        new_live = self.draft.publish()
+        study.refresh_from_db()
+        self.assertEqual(study.event, new_live)
 
 
 class ChessnutEventTests(TestCase):

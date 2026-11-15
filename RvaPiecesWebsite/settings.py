@@ -171,6 +171,24 @@ if GS_BUCKET_NAME:
         },
     }
 
+# Local "read from cloud" mode: media that isn't on disk is loaded from the production bucket.
+# Uploads still go to the local media folder, so the bucket is never written to.
+# Enable with READ_FROM_CLOUD=True (ignored when GS_BUCKET_NAME is set, i.e. in production).
+READ_FROM_CLOUD = os.environ.get("READ_FROM_CLOUD", "").lower() in ("1", "true", "yes")
+CLOUD_READ_BUCKET_NAME = os.environ.get(
+    "CLOUD_READ_BUCKET_NAME", "rva-pieces-website_media"
+)
+CLOUD_READ_BUCKET_URL = f"https://storage.googleapis.com/{CLOUD_READ_BUCKET_NAME}/"
+if READ_FROM_CLOUD and not GS_BUCKET_NAME:
+    STORAGES = {
+        "default": {
+            "BACKEND": "helpers.storage.CloudReadStorage",
+        },
+        "staticfiles": {
+            "BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage",
+        },
+    }
+
 
 # Internationalization
 # https://docs.djangoproject.com/en/5.2/topics/i18n/

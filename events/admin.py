@@ -1,7 +1,11 @@
-from django.contrib import admin
+import logging
+
+from django.contrib import admin, messages
 from django.shortcuts import redirect
 
 from events.models import Event, Announcement, LichessStudy
+
+logger = logging.getLogger(__name__)
 
 
 # Register your models here.
@@ -56,8 +60,15 @@ class EventAdmin(admin.ModelAdmin):
     @admin.action(description="Publish selected events")
     def publish_draft(self, request, queryset):
         for event in queryset.filter(is_published=False):
-            event.publish()
-            self.message_user(request, f"Published {event}")
+            try:
+                event.publish()
+            except Exception as e:
+                logger.exception("Failed to publish event %s", event.pk)
+                self.message_user(
+                    request, f"Failed to publish {event}: {e}", messages.ERROR
+                )
+            else:
+                self.message_user(request, f"Published {event}")
 
     @admin.action(description="Archive selected events")
     def archive_event(self, request, queryset):
@@ -99,11 +110,16 @@ class EventAdmin(admin.ModelAdmin):
 
     def response_change(self, request, obj):
         if "_publish" in request.POST:
-            published_event = obj.publish()
-            if published_event:
-                self.message_user(request, f"Published {obj}")
-                return redirect(published_event.get_absolute_url())
-            self.message_user(request, f"Failed to publish {obj}")
+            try:
+                published_event = obj.publish()
+            except Exception as e:
+                logger.exception("Failed to publish event %s", obj.pk)
+                self.message_user(
+                    request, f"Failed to publish {obj}: {e}", messages.ERROR
+                )
+                return redirect(request.path)
+            self.message_user(request, f"Published {obj}")
+            return redirect(published_event.get_absolute_url())
         if "_archive" in request.POST:
             obj.archive()
             self.message_user(request, f"Archived {obj}")

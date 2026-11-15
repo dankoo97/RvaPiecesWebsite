@@ -7,7 +7,7 @@ import berserk
 import chess.pgn
 from discord_webhook.webhook import DiscordWebhook, DiscordEmbed
 
-from django.db import models
+from django.db import models, transaction
 from django.utils.text import slugify
 from django_ckeditor_5.fields import CKEditor5Field
 from recurring.models import CalendarEntry
@@ -133,6 +133,12 @@ class Event(models.Model):
         return self.name if self.is_published else f"{self.name} (Draft)"
 
     def publish(self):
+        """
+        Publish this event and return the published Event.
+
+        Runs in a single transaction: if anything fails, the previously published version is
+        left untouched and the exception is raised to the caller.
+        """
         if self.is_published:
             return self
 
@@ -141,16 +147,14 @@ class Event(models.Model):
             self.archived_at = None
 
             self.is_published = True
-            self.published_at = datetime.datetime.now()
+            self.published_at = timezone.now()
             self.save()
             return self
 
-        try:
-            if self.published_version:
-                old_published_version = self.published_version
+        with transaction.atomic():
+            old_published_version = self.published_version
+            if old_published_version:
                 old_published_version.archive()
-            else:
-                old_published_version = None
 
             published = Event.objects.create(
                 name=self.name,
@@ -169,20 +173,14 @@ class Event(models.Model):
                 discord_channel_id=self.discord_channel_id,
                 discord_webhook_urls=self.discord_webhook_urls,
                 chessnut_events=self.chessnut_events,
-                chessnut_handler=self.chessnut_handler,
+                chessnut_handler=self.chessnut_handler or default_chessnut_handler(),
             )
 
             if old_published_version:
-                for study in old_published_version.lichess_studies.values():
-                    study.event = published
+                old_published_version.lichess_studies.update(event=published)
 
-        except Exception as e:
-            # Skip saving the published version if there is an error
-            print(e)
-            return None
-
-        self.published_version = published
-        self.save(update_fields=["published_version"])
+            self.published_version = published
+            self.save(update_fields=["published_version"])
 
         return published
 

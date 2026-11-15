@@ -21,3 +21,16 @@ secrets/
 .DS_Store
 .vscode/
 .idea/
+
+# Credentials and local data - never bake these into the image
+service-account-key.json
+*-key.json
+client_secret*.json
+config.yaml
+data.json
+rvapiecessite
+
+# Local-only directories
+.git/
+.venv/
+media/

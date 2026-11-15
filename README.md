@@ -58,6 +58,12 @@ To push changes to the live website:
 10. Set a revision tag for your change and test your changes there
 11. If everything is working, switch traffic to the new revision
 
+To use the live website's images locally:
+1. Add `READ_FROM_CLOUD=True` to your `.env` file
+2. Any media file that isn't in your local `media/` folder will be loaded from the `rva-pieces-website_media` bucket
+3. Uploads still save to your local `media/` folder. The bucket is never written to
+4. Optionally set `CLOUD_READ_BUCKET_NAME` to read from a different bucket
+
 To download the latest database:
 1. Go to the Google Cloud console and open Cloud Storage
 2. Open the `rva-pieces-website_media` bucket

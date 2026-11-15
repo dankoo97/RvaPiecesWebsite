@@ -1,6 +1,7 @@
 import datetime
 import calendar
 import json
+import logging
 import re
 from collections import defaultdict
 from io import StringIO
@@ -22,6 +23,8 @@ from events.chessnut import Chessnut
 from events.forms import LichessStudyForm, LichessStudyGameSubmissionForm, ChessnutForm
 from events.models import Event, Announcement, LichessStudy
 
+logger = logging.getLogger(__name__)
+
 
 # Create your views here.
 class ListEventsView(generic.ListView):
@@ -39,9 +42,13 @@ class EventView(generic.DetailView):
 
         self.object = self.get_object()
         if "_publish" in request.POST:
-            published_event = self.object.publish()
-            if published_event:
-                return redirect(published_event.get_absolute_url())
+            try:
+                published_event = self.object.publish()
+            except Exception as e:
+                logger.exception("Failed to publish event %s", self.object.pk)
+                messages.error(request, f"Failed to publish {self.object}: {e}")
+                return redirect(self.object.get_absolute_url())
+            return redirect(published_event.get_absolute_url())
         if "_archive" in request.POST:
             self.object.archive()
             return redirect("schedule")

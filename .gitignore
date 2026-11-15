@@ -8,3 +8,12 @@ static/styles/
 
 **/.env
 /Pipfile.lock
+
+# Credentials and local data
+service-account-key.json
+*-key.json
+client_secret*.json
+config.yaml
+data.json
+db.sqlite3
+__pycache__/
