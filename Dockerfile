@@ -1,8 +1,13 @@
 # Stage 1: Builder stage
 FROM python:3.13-slim AS builder
 
-# Install pipenv
-RUN pip install pipenv
+# git is needed for dependencies installed from git (e.g. the berserk fork)
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends git \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install uv
+COPY --from=ghcr.io/astral-sh/uv:0.11.7 /uv /usr/local/bin/uv
 
 # Create the app directory
 RUN mkdir /app
@@ -10,11 +15,12 @@ RUN mkdir /app
 # Set the working directory inside the container
 WORKDIR /app
 
-# Copy the Django project  and install dependencies
-COPY Pipfile Pipfile.lock ./
+# Copy the dependency definitions
+COPY pyproject.toml uv.lock ./
 
-# run this command to install all dependencies
-RUN pipenv install --system --deploy
+# Install the exact locked (non-dev) dependencies into the system python
+RUN uv export --frozen --no-dev --no-emit-project --no-hashes -o requirements.txt \
+    && uv pip install --system --no-cache -r requirements.txt
 
 # Stage 2
 FROM python:3.13-slim

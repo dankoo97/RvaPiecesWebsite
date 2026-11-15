@@ -58,7 +58,7 @@ class Chessnut:
     def get_all_chessnut_events(*, start_date=None, end_date=None) -> list[dict]:
         if cache.get(Chessnut._cache_key) is not None:
             return cache.get(Chessnut._cache_key)
-        print("Fetching chessnut events...")
+        logger.info("Fetching chessnut events...")
 
         headers = {"Authorization": f"Bearer {Chessnut.api_key()}"}
         params = {
@@ -88,12 +88,12 @@ class Chessnut:
             log_unexpected_response(response, "fetch-all")
             return []
         cache.set(Chessnut._cache_key, result, CACHE_TIMEOUT)
-        print("Fetched chessnut events")
+        logger.info("Fetched chessnut events")
         return result or []
 
     @staticmethod
     def get_chessnut_event_by_id(chessnut_event_id: int):
-        print(f"Fetching chessnut event: {chessnut_event_id}")
+        logger.info("Fetching chessnut event: %s", chessnut_event_id)
         headers = {"Authorization": f"Bearer {Chessnut.api_key()}"}
         params = {}
         endpoint = f"https://chessnut.club/api/v1/events/{chessnut_event_id}"

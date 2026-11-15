@@ -216,7 +216,7 @@ class ChessnutAPI(generic.View):
         if not (request.user.is_staff or request.user.is_superuser):
             return HttpResponseForbidden()
         if "_update" in request.POST:
-            print(request.POST)
+            logger.debug("POST data: %s", request.POST)
             event = Event.objects.get(slug=kwargs["event"])
             removed_ids = json.loads(request.POST.get("removedIds", "[]"))
             event.update_chessnut_json(
