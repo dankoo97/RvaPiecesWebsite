@@ -1,0 +1,4 @@
+# Production (main branch, "prod" tag, rvapieces.org). Layered on top of common.yaml.
+env:
+  DJANGO_LOGLEVEL: "debug"
+  REMOTE_DB_PATH: "db.sqlite3"

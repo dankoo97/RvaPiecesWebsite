@@ -34,3 +34,7 @@ rvapiecessite
 .git/
 .venv/
 media/
+
+# Built in CI / at deploy time
+node_modules/
+staticfiles/
