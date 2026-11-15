@@ -1,0 +1,14 @@
+# Dev site (dev branch or a manual run, "dev" tag). Layered on top of common.yaml.
+env:
+  DJANGO_LOGLEVEL: "debug"
+  # Copied from prod's database on every dev deploy. Must differ from prod's REMOTE_DB_PATH.
+  REMOTE_DB_PATH: "dev/db.sqlite3"
+  # Keep dev's collectstatic out of prod's static files in the shared bucket.
+  GS_STATIC_LOCATION: "dev-static"
+  # Never replace an existing production media file in the shared bucket.
+  GS_FILE_OVERWRITE: "False"
+  # Read from Lichess/Chessnut/Discord, but don't create anything on them.
+  EXTERNAL_WRITES_ENABLED: "False"
+# To give dev its own credentials later, override them here, e.g.:
+# secrets:
+#   LICHESS_API_TOKEN: "LICHESS_API_TOKEN_DEV:latest"
