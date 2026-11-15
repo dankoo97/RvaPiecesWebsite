@@ -15,6 +15,7 @@ class LichessStudyForm(forms.ModelForm):
     chessnut_event_id = forms.ChoiceField(
         label="Chessnut Event",
         choices=(),
+        required=False,
         widget=forms.Select(attrs={"class": "form-select"}),
     )
 

@@ -60,13 +60,38 @@ class EventView(generic.DetailView):
         if "_study" in request.POST:
             study_form = LichessStudyForm(self.object, request.POST)
             if study_form.is_valid():
-                if not study_form.study_id:
-                    study_form.study_id = "test"
-                    # study.study_id = LichessStudy.create_lichess_study(name=study.name)
                 study = study_form.save(commit=False)
-                study.event = self.object
-                study.save()
-                return JsonResponse({"success": True})
+                created_on_lichess = False
+                if not study.study_id:
+                    # The name didn't match an existing study, so make a new one on Lichess
+                    try:
+                        study.study_id = LichessStudy.create_lichess_study(
+                            name=study.name
+                        )
+                    except ExternalWritesDisabled as e:
+                        study_form.add_error(None, str(e))
+                    except (BerserkError, ValueError) as e:
+                        logger.exception(
+                            "Failed to create Lichess study %r", study.name
+                        )
+                        study_form.add_error(
+                            None, f"Couldn't create the study on Lichess: {e}"
+                        )
+                    else:
+                        if study.study_id:
+                            created_on_lichess = True
+                        else:
+                            study_form.add_error(
+                                None, "Lichess didn't return an id for the new study."
+                            )
+                if not study_form.errors:
+                    study.event = self.object
+                    study.save()
+                    verb = "Created" if created_on_lichess else "Added"
+                    messages.success(
+                        request, f"{verb} Lichess study {study.name}: {study.study_url}"
+                    )
+                    return redirect(self.object.get_absolute_url())
             context = self.get_context_data()
             context["lichess_form"] = study_form
             return self.render_to_response(context)
