@@ -1,9 +1,9 @@
 {
-  "name": "Protect main",
+  "name": "ProtectPushToMain",
   "target": "branch",
   "enforcement": "active",
   "conditions": {
-    "ref_name": { "include": ["~DEFAULT_BRANCH"], "exclude": [] }
+    "ref_name": { "include": ["refs/heads/main"], "exclude": [] }
   },
   "bypass_actors": [
     { "actor_id": 5, "actor_type": "RepositoryRole", "bypass_mode": "pull_request" }
@@ -18,7 +18,8 @@
         "require_code_owner_review": true,
         "dismiss_stale_reviews_on_push": true,
         "require_last_push_approval": false,
-        "required_review_thread_resolution": false
+        "required_review_thread_resolution": false,
+        "require_extra_approval_for_unattributed_changes": true
       }
     },
     {
