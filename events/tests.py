@@ -415,3 +415,13 @@ class MagicChessnutHandlerTests(TestCase):
             self.event.sync_magic_chessnut_events()
             get.assert_not_called()
         self.assertEqual(self.magic_event_ids(), [101])
+
+    def test_one_day_event_with_null_end_date_is_added(self):
+        one_day = {**self.api_event, "start_date": datetime.date.today().isoformat()}
+        one_day["end_date"] = None
+        self.assertTrue(self.sync_with(self.api_response([one_day])))
+        self.event.refresh_from_db()
+        (added,) = self.event.chessnut_events["events"]
+        self.assertEqual(added["end_date"], one_day["start_date"])
+        expected_expiry = datetime.date.today() + datetime.timedelta(days=7)
+        self.assertEqual(added["expires"], expected_expiry.isoformat())

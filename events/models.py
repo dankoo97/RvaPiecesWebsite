@@ -272,7 +272,8 @@ class Event(models.Model):
                 continue
 
             start_date = api_event.get("start_date")
-            end_date = api_event.get("end_date", start_date)
+            # One-day Chessnut events come back with "end_date": null
+            end_date = api_event.get("end_date") or start_date
             try:
                 start_date = datetime.date.fromisoformat(str(start_date)[:10])
                 end_date = datetime.date.fromisoformat(str(end_date)[:10])
