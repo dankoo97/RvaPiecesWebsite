@@ -7,7 +7,7 @@
 #
 # Every dev deploy first copies the production SQLite database to a separate dev path, so
 # the dev site starts with real data and never writes to the production database.
-# Dev can read from Lichess/Chessnut/Discord but not create anything there (EXTERNAL_WRITES_ENABLED).
+# Settings (env vars + Secret Manager refs) live in deploy/env/ and are applied in full on each deploy.
 
 name: Deploy to Cloud Run
 
@@ -26,10 +26,6 @@ env:
   SERVICE: rva-pieces-website
   IMAGE: us-central1-docker.pkg.dev/rva-pieces-website/rva-pieces-website-docker-repo/rva-pieces-website
   DB_BUCKET: rva-pieces-website_db
-  PROD_DB_PATH: db.sqlite3
-  DEV_DB_PATH: dev/db.sqlite3
-  DEV_STATIC_LOCATION: dev-static
-  URL_SUFFIXES: "697368313332.us-east4.run.app 7er2of6acq-uk.a.run.app"
 
 jobs:
   deploy:
@@ -70,41 +66,50 @@ jobs:
           docker build -t "$IMAGE:$GITHUB_SHA" -t "$IMAGE:$TARGET" .
           docker push --all-tags "$IMAGE"
 
-      - name: Build allowed origins
-        id: origins
+      # Settings come from deploy/env/common.yaml + deploy/env/<target>.yaml and are applied in
+      # full, so a revision never inherits settings from whichever revision was deployed last.
+      - name: Render settings
+        id: settings
+        env:
+          TARGET: ${{ steps.target.outputs.name }}
         run: |
-          origins="http://127.0.0.1:8080,https://rvapieces.org"
-          for h in $URL_SUFFIXES; do
-            for prefix in "" "prod---" "dev---" "latest---"; do
-              origins="$origins,https://${prefix}${SERVICE}-${h}"
-            done
-          done
-          echo "value=$origins" >> "$GITHUB_OUTPUT"
+          merged() { yq eval-all '. as $f ireduce ({}; . * $f)' deploy/env/common.yaml "deploy/env/$1.yaml"; }
+          merged "$TARGET" | yq '.env | (.[] style="double")' > "$RUNNER_TEMP/env.yaml"
+          secrets=$(merged "$TARGET" | yq '(.secrets // {}) | to_entries | map(.key + "=" + .value) | join(",")')
+          prod_db=$(merged prod | yq '.env.REMOTE_DB_PATH')
+          dev_db=$(merged dev | yq '.env.REMOTE_DB_PATH')
+          if [ -z "$dev_db" ] || [ "$dev_db" = "null" ] || [ "$dev_db" = "$prod_db" ]; then
+            echo "::error::deploy/env/dev.yaml must set a REMOTE_DB_PATH different from prod's ($prod_db)"
+            exit 1
+          fi
+          echo "Settings for $TARGET:"; yq 'keys' "$RUNNER_TEMP/env.yaml"; echo "Secrets: $secrets" | sed 's/=[^,]*//g'
+          {
+            echo "env_file=$RUNNER_TEMP/env.yaml"
+            echo "secrets=$secrets"
+            echo "prod_db=$prod_db"
+            echo "dev_db=$dev_db"
+          } >> "$GITHUB_OUTPUT"
 
       - name: Copy production database to dev
         if: steps.target.outputs.name == 'dev'
-        run: gcloud storage cp "gs://$DB_BUCKET/$PROD_DB_PATH" "gs://$DB_BUCKET/$DEV_DB_PATH"
-
-      # New revisions inherit env vars from the latest revision, which may be a dev one, so
-      # every deploy sets the database/static settings explicitly.
-      - name: Deploy dev revision
-        if: steps.target.outputs.name == 'dev'
         env:
-          ORIGINS: ${{ steps.origins.outputs.value }}
+          PROD_DB: ${{ steps.settings.outputs.prod_db }}
+          DEV_DB: ${{ steps.settings.outputs.dev_db }}
+        run: gcloud storage cp "gs://$DB_BUCKET/$PROD_DB" "gs://$DB_BUCKET/$DEV_DB"
+
+      - name: Deploy revision
+        env:
+          TARGET: ${{ steps.target.outputs.name }}
+          ENV_FILE: ${{ steps.settings.outputs.env_file }}
+          SECRETS: ${{ steps.settings.outputs.secrets }}
         run: |
           gcloud run deploy "$SERVICE" --project "$PROJECT_ID" --region "$REGION" \
-            --image "$IMAGE:$GITHUB_SHA" --no-traffic --tag dev \
-            --update-env-vars "^|^REMOTE_DB_PATH=$DEV_DB_PATH|GS_STATIC_LOCATION=$DEV_STATIC_LOCATION|GS_FILE_OVERWRITE=False|EXTERNAL_WRITES_ENABLED=False|CSRF_TRUSTED_ORIGINS=$ORIGINS|CORS_ALLOWED_ORIGINS=$ORIGINS"
+            --image "$IMAGE:$GITHUB_SHA" --no-traffic --tag "$TARGET" \
+            --env-vars-file "$ENV_FILE" --set-secrets "$SECRETS"
 
-      - name: Deploy prod revision
+      - name: Send all traffic to prod
         if: steps.target.outputs.name == 'prod'
-        env:
-          ORIGINS: ${{ steps.origins.outputs.value }}
         run: |
-          gcloud run deploy "$SERVICE" --project "$PROJECT_ID" --region "$REGION" \
-            --image "$IMAGE:$GITHUB_SHA" --no-traffic --tag prod \
-            --update-env-vars "^|^REMOTE_DB_PATH=$PROD_DB_PATH|CSRF_TRUSTED_ORIGINS=$ORIGINS|CORS_ALLOWED_ORIGINS=$ORIGINS" \
-            --remove-env-vars GS_STATIC_LOCATION,GS_FILE_OVERWRITE,EXTERNAL_WRITES_ENABLED
           gcloud run services update-traffic "$SERVICE" --project "$PROJECT_ID" --region "$REGION" \
             --to-tags prod=100
 
@@ -112,5 +117,5 @@ jobs:
         env:
           TARGET: ${{ steps.target.outputs.name }}
         run: |
-          url="https://${TARGET}---${SERVICE}-${URL_SUFFIXES##* }"
+          url="https://${TARGET}---${SERVICE}-7er2of6acq-uk.a.run.app"
           echo "Deployed \`$GITHUB_REF_NAME\` ($GITHUB_SHA) to **$TARGET**: $url" >> "$GITHUB_STEP_SUMMARY"

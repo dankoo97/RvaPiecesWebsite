@@ -72,6 +72,29 @@ Deploys are automatic (`.github/workflows/deploy.yml`), all to the `rva-pieces-w
 
 One-time setup of the GitHub → Google Cloud connection: `scripts/setup-github-deploy.sh`.
 
+### Environment variables in Cloud Run
+The code reads all configuration from environment variables (`os.environ`, mostly in
+`RvaPiecesWebsite/settings.py`). For the deployed sites they're defined in `deploy/env/`:
+
+- `common.yaml`: settings shared by prod and dev
+- `prod.yaml` / `dev.yaml`: per-environment values, which override `common.yaml`
+
+Each file has an `env:` section (plain values) and a `secrets:` section that maps an env var to a
+Secret Manager secret, e.g. `LICHESS_API_TOKEN: "LICHESS_API_TOKEN:latest"`. Every deploy applies
+the merged settings **in full**: anything not in the files is removed, and changes made in the
+Cloud Run console are undone on the next deploy.
+
+- **Change or add a plain value:** edit the YAML and open a PR. It takes effect on the next
+  deploy of that environment.
+- **Change a secret's value:** add a new version in Secret Manager. References ending in `:latest`
+  pick it up on the next deploy, with no repo change needed. A pinned one (e.g. `:4`) needs its
+  version bumped in the YAML.
+- **Add a secret:** create it in Secret Manager, grant `django-gcs-access@rva-pieces-website.iam.gserviceaccount.com`
+  the *Secret Manager Secret Accessor* role on it, then add it under `secrets:`.
+- **Give dev its own value** (e.g. a test token): override the key in `dev.yaml`.
+
+Locally, the same variables come from your `.env` file.
+
 To use the live website's images locally:
 1. Add `READ_FROM_CLOUD=True` to your `.env` file
 2. Any media file that isn't in your local `media/` folder will be loaded from the `rva-pieces-website_media` bucket
