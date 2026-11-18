@@ -31,3 +31,15 @@ class ExternalWritesTests(SimpleTestCase):
                 LichessStudy.create_lichess_study(name="Test")
         client.assert_not_called()
         webhook.assert_not_called()
+
+
+@override_settings(ALLOWED_HOSTS=["rvapieces.org", "www.rvapieces.org"])
+class WwwRedirectTests(SimpleTestCase):
+    def test_www_redirects_to_bare_domain(self):
+        response = self.client.get("/events/?page=2", HTTP_HOST="www.rvapieces.org")
+        self.assertEqual(response.status_code, 301)
+        self.assertEqual(response["Location"], "https://rvapieces.org/events/?page=2")
+
+    def test_bare_domain_is_not_redirected(self):
+        response = self.client.get("/does-not-exist/", HTTP_HOST="rvapieces.org")
+        self.assertNotEqual(response.status_code, 301)
